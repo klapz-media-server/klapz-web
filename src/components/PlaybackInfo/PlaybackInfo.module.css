@@ -1,0 +1,165 @@
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 6px;
+}
+
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.explain {
+  flex: 1;
+  min-width: 200px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th,
+.table td {
+  padding: 7px 6px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table thead th {
+  padding-top: 0;
+  color: var(--color-text-faint);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.table tbody tr + tr {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.table tbody th {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.table td {
+  color: #fff;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.table td:last-child {
+  text-align: right;
+}
+
+.arrow {
+  color: var(--color-text-faint) !important;
+}
+
+.status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(77, 178, 136, 0.16);
+  color: var(--color-success);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status[data-converted] {
+  background: rgba(229, 160, 13, 0.16);
+  color: var(--color-accent);
+}
+
+.speedRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.speedLabel {
+  grid-column: 1 / -1;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.speedValue {
+  color: var(--color-accent);
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.speedValue[data-slow] {
+  color: var(--color-alert);
+}
+
+.speedMeter {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.speedMeter span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--color-accent);
+}
+
+.speedMeter span[data-slow] {
+  background: var(--color-alert);
+}
+
+/* real-time (1×) marker */
+.speedMeter i {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.speedHint {
+  grid-column: 1 / -1;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 16px;
+}
+
+.stats dt {
+  color: var(--color-text-faint);
+  font-size: 12px;
+}
+
+.stats dd {
+  margin: 0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,63 @@
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.badge[data-tone='imdb'] {
+  padding: 0 5px;
+  border-radius: 3px;
+  background: #f5c518;
+  color: #000;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.badge[data-tone='critic'] .dot {
+  background: radial-gradient(circle at 35% 35%, #ff6b4a, #d62b0c);
+}
+
+.badge[data-tone='audience'] .dot {
+  background: radial-gradient(circle at 35% 35%, #ffc65c, #e98a00);
+  border-radius: 3px 3px 7px 7px;
+}
+
+.badge[data-tone='tmdb'] .dot {
+  border-radius: 4px;
+  background: linear-gradient(90deg, #90cea1, #01b4e4);
+}
+
+.value {
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.source {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}

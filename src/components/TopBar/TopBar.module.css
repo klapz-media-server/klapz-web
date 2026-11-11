@@ -1,0 +1,120 @@
+.bar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 40;
+  height: var(--topbar-h);
+  padding: 4px var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
+  transition:
+    background-color 0.25s var(--ease),
+    box-shadow 0.25s var(--ease);
+}
+
+.bar[data-scrolled] {
+  background-color: rgba(22, 22, 22, 0.92);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding-right: 8px;
+  border-radius: var(--radius-pill);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-primary);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color 0.15s;
+}
+
+.link:hover,
+.link[aria-current='page'] {
+  background: var(--color-control);
+}
+
+.linkIcon {
+  display: none;
+}
+
+.end {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.server {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  background: var(--color-control);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.serverDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(77, 178, 136, 0.25);
+}
+
+@media (max-width: 900px) {
+  .serverName {
+    display: none;
+  }
+  .server {
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .linkLabel {
+    display: none;
+  }
+  .linkIcon {
+    display: inline-block;
+  }
+  .link {
+    padding: 0 11px;
+  }
+  .server {
+    display: none;
+  }
+  .nav {
+    gap: 4px;
+    flex: 1;
+  }
+  .logo {
+    padding-right: 2px;
+  }
+}

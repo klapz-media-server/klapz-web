@@ -1,0 +1,91 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s,
+    color 0.15s,
+    opacity 0.15s;
+}
+
+.button[data-size='sm'] {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.button[data-variant='primary'] {
+  background: #fff;
+  color: #000;
+}
+
+.button[data-variant='primary']:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.button[data-variant='accent'] {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.button[data-variant='accent']:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.button[data-variant='secondary'] {
+  background: var(--color-control);
+  color: var(--color-text-primary);
+}
+
+.button[data-variant='secondary']:hover:not(:disabled) {
+  background: var(--color-control-hover);
+}
+
+.button[data-variant='danger'] {
+  background: rgba(249, 55, 6, 0.12);
+  color: #ff8a6a;
+}
+
+.button[data-variant='danger']:hover:not(:disabled) {
+  background: rgba(249, 55, 6, 0.22);
+}
+
+.button[data-variant='ghost'] {
+  color: var(--color-text-muted);
+}
+
+.button[data-variant='ghost']:hover:not(:disabled) {
+  color: #fff;
+  background: var(--color-control);
+}
+
+.button[data-loading] {
+  cursor: wait;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

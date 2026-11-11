@@ -1,0 +1,32 @@
+.page {
+  padding-bottom: 64px;
+}
+
+.spacer {
+  height: calc(var(--topbar-h) + 32px);
+}
+
+.spotlightPlaceholder {
+  height: min(78vh, 760px);
+  background: linear-gradient(180deg, #222 0%, var(--color-bg) 100%);
+  margin-bottom: 12px;
+}
+
+.genres {
+  margin-bottom: 40px;
+}
+
+.sectionTitle {
+  padding: 0 var(--gutter);
+  margin-bottom: 12px;
+  color: var(--color-text-primary);
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.sectionHint {
+  margin-left: 8px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+}

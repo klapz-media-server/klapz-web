@@ -1,0 +1,52 @@
+.bubble {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  min-width: 88px;
+  height: 88px;
+  padding: 0 20px;
+  margin: -44px 0 0 -44px;
+  border-radius: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  pointer-events: none;
+  animation: flash 0.7s var(--ease) forwards;
+}
+
+.bubble[data-side='left'] {
+  left: 22%;
+}
+
+.bubble[data-side='right'] {
+  left: 78%;
+}
+
+.text {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}

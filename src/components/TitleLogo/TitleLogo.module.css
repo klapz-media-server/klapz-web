@@ -1,0 +1,42 @@
+.root {
+  position: relative;
+  min-height: 48px;
+  color: var(--color-text-primary);
+}
+
+.logo {
+  max-width: min(420px, 80vw);
+  max-height: 140px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: left bottom;
+  filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.45));
+}
+
+.text {
+  display: block;
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+}
+
+/* keep the text for screen readers while the logo is visible */
+.root[data-state='loaded'] .text,
+.root[data-state='loading'] .text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.root[data-state='loading'] .logo {
+  opacity: 0;
+}
+
+.root[data-state='loading'] {
+  min-height: 100px;
+}

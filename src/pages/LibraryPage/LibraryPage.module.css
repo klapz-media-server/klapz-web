@@ -1,0 +1,176 @@
+.page {
+  padding: calc(var(--topbar-h) + 24px) 0 64px;
+  background:
+    radial-gradient(70% 380px at 10% 0%, rgba(229, 160, 13, 0.08), transparent),
+    radial-gradient(60% 380px at 90% 0%, rgba(120, 140, 255, 0.07), transparent);
+}
+
+.header {
+  padding: 0 var(--gutter);
+  margin-bottom: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.kindIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-control);
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.title {
+  color: var(--color-text-primary);
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-control);
+}
+
+.tab {
+  height: 36px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-default);
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.tab:hover {
+  color: #fff;
+}
+
+.tab[aria-current='page'] {
+  background: #fff;
+  color: #000;
+}
+
+.recommendedGenres {
+  margin-bottom: 32px;
+}
+
+.toolbar {
+  padding: 0 var(--gutter);
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.toolbarLeft {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  background: var(--color-control);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.15s;
+}
+
+.toolButton:hover {
+  background: var(--color-control-hover);
+}
+
+.toolButton[data-active] {
+  background: #fff;
+  color: #000;
+}
+
+.count {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.genreChips {
+  margin-bottom: 24px;
+}
+
+.activeTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 6px 0 14px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 14px;
+}
+
+.activeTagAvatar {
+  width: 26px;
+  height: 26px;
+  margin-left: -10px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.activeTagKind {
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+.activeTagName {
+  font-weight: 700;
+}
+
+.activeTagClear {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.activeTagClear:hover {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.empty {
+  padding: 48px var(--gutter);
+  color: var(--color-text-muted);
+  text-align: center;
+}

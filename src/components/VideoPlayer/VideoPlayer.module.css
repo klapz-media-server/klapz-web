@@ -1,0 +1,340 @@
+.player {
+  --player-gutter: 40px;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  color: #fff;
+  overflow: hidden;
+  user-select: none;
+}
+
+.player[data-idle] {
+  cursor: none;
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+/* Subtitles, rendered by Shaka's UITextDisplayer inside .captions.
+   They sit above the control bar while it is shown and drop when idle. */
+.captions {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  --captions-bottom: 150px;
+}
+
+.player[data-idle] .captions {
+  --captions-bottom: 48px;
+}
+
+.captions :global(.shaka-text-container) {
+  position: absolute;
+  inset: 0 0 var(--captions-bottom);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 8%;
+  color: #fff;
+  font-family: var(--font);
+  font-size: clamp(18px, 3.4vmin, 40px);
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  transition: bottom 0.3s var(--ease);
+}
+
+.captions :global(.shaka-text-container) > div {
+  font-weight: 600 !important;
+}
+
+/* one box per line, like the Plex player */
+.captions :global(.shaka-text-container) span {
+  padding: 0.06em 0.45em;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.62) !important;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  line-height: 1.45;
+}
+
+.poster {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.45);
+  animation: fadeIn 0.6s var(--ease);
+}
+
+/* Click / double-click target over the whole picture. */
+.surface {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- top bar ---------- */
+
+.top {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px var(--player-gutter) 80px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.35) 55%, transparent);
+  pointer-events: none;
+  transition:
+    opacity 0.3s var(--ease),
+    transform 0.3s var(--ease);
+}
+
+.top > * {
+  pointer-events: auto;
+}
+
+.titles {
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.topEnd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.title {
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- center ---------- */
+
+.center {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.bigPlay {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 6px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  transition: transform 0.15s var(--ease);
+  animation: pop 0.3s var(--ease);
+}
+
+.bigPlay:hover {
+  transform: scale(1.06);
+}
+
+.spinner {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.18);
+  border-top-color: var(--color-accent);
+  animation: spin 0.8s linear infinite;
+}
+
+/* ---------- bottom ---------- */
+
+.bottom {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 3;
+  /* the gradient lets clicks through to the picture; only controls catch them */
+  pointer-events: none;
+  padding: 90px var(--player-gutter) 16px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.45) 55%, transparent);
+  transition:
+    opacity 0.3s var(--ease),
+    transform 0.3s var(--ease);
+}
+
+.timeline,
+.controls {
+  pointer-events: auto;
+}
+
+.timeline {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.timeline > [role='slider'] {
+  flex: 1;
+}
+
+.time {
+  min-width: 56px;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+}
+
+button.time:hover {
+  color: #fff;
+}
+
+.controls {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.settingsAnchor {
+  position: relative;
+}
+
+.rate {
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.15);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ---------- idle: hide chrome ---------- */
+
+.player[data-idle] .top {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+
+.player[data-idle] .bottom {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.player[data-idle] .top,
+.player[data-idle] .bottom {
+  pointer-events: none;
+}
+
+.player[data-idle] .top > * {
+  pointer-events: none;
+}
+
+/* ---------- error ---------- */
+
+.error {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.error h2 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.error p {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.error button {
+  margin-top: 12px;
+  height: 42px;
+  padding: 0 22px;
+  border-radius: var(--radius-pill);
+  background: #fff;
+  color: #000;
+  font-weight: 700;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .player {
+    --player-gutter: 12px;
+  }
+  .time {
+    min-width: 44px;
+    font-size: 12px;
+  }
+  .controls {
+    gap: 0;
+  }
+  .group {
+    gap: 0;
+  }
+}

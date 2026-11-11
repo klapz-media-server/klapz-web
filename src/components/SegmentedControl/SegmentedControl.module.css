@@ -1,0 +1,50 @@
+.control {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+}
+
+.option {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.control[data-size='sm'] .option {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.option:hover:not(:disabled) {
+  color: #fff;
+}
+
+.option[aria-checked='true'] {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.option[aria-checked='true'][data-tone='accent'] {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.option[aria-checked='true'][data-tone='success'] {
+  background: rgba(77, 178, 136, 0.9);
+  color: #0d1f17;
+}
+
+.option:disabled {
+  cursor: wait;
+}

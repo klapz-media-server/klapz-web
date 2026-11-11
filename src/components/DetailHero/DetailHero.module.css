@@ -1,0 +1,86 @@
+.hero {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  padding: calc(var(--topbar-h) + 40px) var(--gutter) 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.eyebrow {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-bottom: -8px;
+}
+
+.eyebrow a:hover {
+  color: #fff;
+}
+
+.metaBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px 24px;
+  margin-top: 4px;
+}
+
+.roundActions {
+  display: flex;
+  gap: 8px;
+}
+
+.tagline {
+  color: var(--color-text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  font-style: italic;
+  margin-bottom: -8px;
+}
+
+.summary {
+  max-width: 680px;
+}
+
+.credits {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.creditRow {
+  display: flex;
+  gap: 8px;
+}
+
+.creditRow dt {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.creditRow dd {
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.creditRow a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    padding-top: calc(var(--topbar-h) + 34vw);
+  }
+}

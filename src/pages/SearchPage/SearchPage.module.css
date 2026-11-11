@@ -1,0 +1,47 @@
+.page {
+  min-height: 100vh;
+  padding: calc(var(--topbar-h) + 32px) 0 64px;
+}
+
+.header {
+  padding: 0 var(--gutter);
+  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  color: var(--color-text-primary);
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.query {
+  color: var(--color-accent);
+}
+
+.hint {
+  padding: 0 var(--gutter);
+  color: var(--color-text-muted);
+}
+
+.results {
+  transition: opacity 0.2s;
+}
+
+.results[data-stale] {
+  opacity: 0.55;
+}
+
+.wideGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--wide-w), 1fr));
+  gap: 28px var(--card-gap);
+  padding: 0 var(--gutter);
+}
+
+.wideGrid > * {
+  width: 100%;
+}

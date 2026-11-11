@@ -1,0 +1,114 @@
+.slider {
+  position: relative;
+  margin-bottom: 36px;
+}
+
+.header {
+  padding: 0 var(--gutter);
+  margin-bottom: 12px;
+}
+
+.title {
+  color: var(--color-text-primary);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.titleLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.titleChevron {
+  opacity: 0.6;
+  transition:
+    transform 0.2s var(--ease),
+    opacity 0.2s;
+}
+
+.titleLink:hover .titleChevron {
+  opacity: 1;
+  transform: translateX(3px);
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.viewport {
+  position: relative;
+}
+
+.track {
+  display: flex;
+  gap: var(--card-gap);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px var(--gutter) 8px;
+  scroll-padding-inline: var(--gutter);
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.track > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+.arrow {
+  position: absolute;
+  top: 0;
+  bottom: 8px;
+  z-index: 2;
+  width: var(--gutter);
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.2s var(--ease);
+}
+
+.arrow[hidden] {
+  display: none;
+}
+
+.arrowPrev {
+  left: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.75), transparent);
+}
+
+.arrowNext {
+  right: 0;
+  background: linear-gradient(-90deg, rgba(0, 0, 0, 0.75), transparent);
+}
+
+.viewport:hover .arrow {
+  opacity: 1;
+}
+
+.arrow:hover svg {
+  transform: scale(1.15);
+}
+
+.arrow svg {
+  transition: transform 0.15s;
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.6));
+}
+
+@media (hover: none) {
+  .arrow {
+    display: none;
+  }
+}

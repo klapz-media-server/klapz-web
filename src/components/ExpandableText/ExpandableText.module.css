@@ -1,0 +1,28 @@
+.text {
+  color: var(--color-text-primary);
+  font-size: 15px;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: var(--lines);
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-line;
+}
+
+.text[data-expanded] {
+  -webkit-line-clamp: unset;
+  display: block;
+}
+
+.toggle {
+  margin-top: 4px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.toggle:hover {
+  color: var(--color-accent);
+}

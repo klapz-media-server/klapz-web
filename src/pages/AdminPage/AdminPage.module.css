@@ -1,0 +1,106 @@
+.page {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: calc(var(--topbar-h) + 32px) var(--gutter) 80px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.headerIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-control);
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.title {
+  color: var(--color-text-primary);
+  font-size: clamp(24px, 3vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.add {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.addField {
+  flex: 1;
+}
+
+.add button {
+  height: 42px;
+}
+
+.message {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(249, 55, 6, 0.12);
+  color: #ff8a6a;
+  font-size: 14px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.empty {
+  padding: 40px 0;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.denied {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.credentials {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.copyRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.copyRow button {
+  height: 42px;
+}
+
+@media (max-width: 640px) {
+  .add {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.waiting {
+  color: var(--color-accent);
+  font-weight: 700;
+}
