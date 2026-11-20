@@ -174,3 +174,14 @@
   color: var(--color-text-muted);
   text-align: center;
 }
+
+/* The grid and, in title order, its jump bar in the right margin. */
+.listing {
+  position: relative;
+}
+
+@media (max-width: 640px) {
+  .listing[data-letters] .grid {
+    --pad-right: 30px;
+  }
+}

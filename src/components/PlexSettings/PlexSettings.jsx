@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
 import { useMutation } from '@apollo/client/react';
 import { useTranslation } from 'react-i18next';
 import { MOVE_PLEX, PAIR_PLEX, UNPAIR_PLEX } from '../../graphql/mutations';
@@ -124,7 +123,7 @@ function Paired({ user, plex }) {
   };
 
   const published = account.publishedAt
-    ? t('Published on plex.tv {{date}}', { date: formatDate(new Date(account.publishedAt * 1000).toISOString()) })
+    ? t('Published on plex.tv {{date}}', { date: formatDate(account.publishedAt) })
     : t('Not published yet: the server keeps trying.');
 
   return (
@@ -216,30 +215,17 @@ function Paired({ user, plex }) {
  */
 export default function PlexSettings({ session }) {
   const { t } = useTranslation();
-  const user = session.viewer?.user;
+  const { user } = session;
   const plex = user?.extensions.nodes.find((e) => e.extension === 'PLEX');
 
   const description = t('Link your part of this server to your plex.tv account, so the Plex apps on your devices find it.');
 
-  if (!user) {
-    return (
-      <SettingsSection title={t('Plex')} description={description}>
-        <p className={styles.notice}>
-          {session.viewer?.isOperator
-            ? t('The operator has no Plex account of its own: each user pairs theirs from their settings.')
-            : t('Sign in with your account to pair it with Plex.')}{' '}
-          <Link to="/settings/account" className={styles.link}>
-            {t('Sign in with your account')}
-          </Link>
-        </p>
-      </SettingsSection>
-    );
-  }
+  if (!user) return null;
 
   if (!plex?.enabled) {
     return (
       <SettingsSection title={t('Plex')} description={description}>
-        <p className={styles.notice}>{t('Plex access is not enabled for your account. Ask the server operator to enable it.')}</p>
+        <p className={styles.notice}>{t('Plex access is not enabled for your account. Ask an owner of the server to enable it.')}</p>
       </SettingsSection>
     );
   }

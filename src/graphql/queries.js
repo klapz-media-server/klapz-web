@@ -3,11 +3,6 @@ import { CARD_FIELDS, EDITABLE_EPISODE, EDITABLE_MOVIE, EDITABLE_SHOW, PEOPLE_FI
 
 export const LIBRARIES = gql`
   query Libraries {
-    server {
-      id
-      friendlyName
-      machineIdentifier
-    }
     libraries(first: 100) {
       nodes {
         id
@@ -456,13 +451,16 @@ export const SEARCH = gql`
   }
 `;
 
-/** Operator only: answers "not found" to anyone else. */
+/** Owners only: anyone else is answered as if there were no users. */
 export const ADMIN_USERS = gql`
   query AdminUsers {
     users(first: 500) {
       nodes {
         id
+        username
         email
+        role
+        builtIn
         active
         hasPassword
         createdAt
@@ -498,14 +496,17 @@ export const ADMIN_USERS = gql`
   }
 `;
 
-/** Who the app is signed in as: the operator, a user, or no one. */
+/** Who the app is signed in as: a user, or no one (`role` and `user` null). */
 export const VIEWER = gql`
   query Viewer {
     viewer {
-      isOperator
+      role
       user {
         id
+        username
         email
+        role
+        builtIn
         active
         createdAt
         libraryPermissions {
@@ -554,11 +555,100 @@ export const ITEM_FOR_EDIT = gql`
   }
 `;
 
-/** Whether the server edits items at all: older ones have no `updateMovie`. */
-export const EDIT_SUPPORT = gql`
-  query EditSupport {
-    __type(name: "UpdateMovieInput") {
-      name
+/** How many items a filtered listing holds, and its first-letter buckets for the jump bar. */
+export const LIBRARY_LISTING = gql`
+  query LibraryListing($id: ID!, $filter: ItemFilterInput, $letters: Boolean!) {
+    node(id: $id) {
+      id
+      ... on Library {
+        stats(filter: $filter) {
+          itemCount
+          firstCharacters @include(if: $letters) {
+            character
+            count
+          }
+        }
+      }
     }
   }
+`;
+
+/** One page of a listing at an absolute position, for a grid that renders only what is in view. */
+export const LIBRARY_PAGE = gql`
+  ${CARD_FIELDS}
+  query LibraryPage(
+    $id: ID!
+    $offset: Int!
+    $first: Int!
+    $filter: ItemFilterInput
+    $orderBy: ItemOrder
+    $direction: SortDirection
+    $seed: Int
+  ) {
+    node(id: $id) {
+      id
+      ... on Library {
+        items(first: $first, offset: $offset, filter: $filter, orderBy: $orderBy, direction: $direction, seed: $seed) {
+          edges {
+            cursor
+            node {
+              ...CardFields
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }
+  }
+`;
+
+/** What is being played right now. An owner sees everyone's sessions. */
+export const PLAYBACK_SESSIONS = gql`
+  fragment SessionSource on MediaVersion {
+    id
+    width
+    height
+    videoCodec
+    audioCodec
+    audioChannels
+  }
+
+  query PlaybackSessions {
+    playbackSessions(first: 100) {
+      edges {
+        node {
+          id
+          state
+          clientProduct
+          clientIdentifier
+          positionMs
+          videoDecision
+          audioDecision
+          width
+          height
+          videoBitrate
+          audioBitrate
+          startedAt
+          updatedAt
+          item {
+            ...CardFields
+            ... on Movie {
+              versions {
+                ...SessionSource
+              }
+            }
+            ... on Episode {
+              versions {
+                ...SessionSource
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  ${CARD_FIELDS}
 `;

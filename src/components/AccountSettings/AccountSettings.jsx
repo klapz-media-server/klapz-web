@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { formatDate } from '../../utils/format';
 import Button from '../Button/Button';
@@ -9,50 +9,44 @@ import styles from './AccountSettings.module.css';
 export default function AccountSettings({ session }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { viewer, signOut } = session;
-  const user = viewer?.user;
+  const { user, owner, signOut } = session;
   const libraries = user?.libraryPermissions.nodes.filter((p) => p.library) ?? [];
+  if (!user) return null;
 
   return (
     <div className={styles.stack}>
       <SettingsSection
         title={t('Signed in as')}
         aside={
-          user ? (
-            <Button
-              size="sm"
-              variant="secondary"
-              icon="close"
-              onClick={async () => {
-                await signOut();
-                navigate('/sign-in');
-              }}
-            >
-              {t('Sign out')}
-            </Button>
-          ) : (
-            <Link to="/sign-in?next=%2Fsettings%2Faccount" className={styles.signIn}>
-              {t('Sign in with an account')}
-            </Link>
-          )
+          <Button
+            size="sm"
+            variant="secondary"
+            icon="close"
+            onClick={async () => {
+              await signOut();
+              navigate('/sign-in', { replace: true });
+            }}
+          >
+            {t('Sign out')}
+          </Button>
         }
       >
         <div className={styles.identity}>
           <span className={styles.avatar} aria-hidden="true">
-            {(user?.email ?? 'O').charAt(0).toUpperCase()}
+            {user.username.charAt(0).toUpperCase()}
           </span>
           <div className={styles.who}>
-            <strong>{user ? user.email : viewer?.isOperator ? t('Server operator') : t('Not signed in')}</strong>
+            <strong>{user.username}</strong>
             <span>
-              {user
-                ? t('User since {{date}}', { date: formatDate(new Date(user.createdAt * 1000).toISOString()) })
-                : viewer?.isOperator
-                  ? t('This browser is on a network the server trusts: it sees every library and manages the users.')
-                  : t('The server does not know who you are.')}
+              {[user.email, owner ? t('Owner of the server') : null, t('User since {{date}}', { date: formatDate(user.createdAt) })]
+                .filter(Boolean)
+                .join(' · ')}
             </span>
           </div>
         </div>
-        {user && (
+        {owner ? (
+          <p className={styles.muted}>{t('As an owner, you reach every library and manage the users.')}</p>
+        ) : (
           <div className={styles.libraries}>
             <h3 className={styles.subTitle}>{t('Your libraries')}</h3>
             {libraries.length ? (

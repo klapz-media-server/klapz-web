@@ -1,15 +1,18 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { useQuery } from '@apollo/client/react';
 import { useTranslation } from 'react-i18next';
 import Dropdown, { DropdownItem } from '../../components/Dropdown/Dropdown';
 import ErrorMessage from '../../components/ErrorMessage/ErrorMessage';
 import Icon from '../../components/Icon/Icon';
+import JumpBar, { letterOffsets } from '../../components/JumpBar/JumpBar';
 import MediaRow from '../../components/MediaRow/MediaRow';
 import PosterGrid from '../../components/PosterGrid/PosterGrid';
 import Spinner from '../../components/Spinner/Spinner';
 import TagList from '../../components/TagList/TagList';
-import { LIBRARY_INFO, LIBRARY_ITEMS, RECENTLY_ADDED, TAG_NAME } from '../../graphql/queries';
+import VirtualPosterGrid from '../../components/VirtualPosterGrid/VirtualPosterGrid';
+import { LIBRARY_INFO, LIBRARY_ITEMS, LIBRARY_LISTING, LIBRARY_PAGE, RECENTLY_ADDED, TAG_NAME } from '../../graphql/queries';
+import { useOffsetPages } from '../../hooks/useOffsetPages';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { formatNumber } from '../../utils/format';
 import { libraryPath, queryString, readParam, tagPath } from '../../utils/routes';
@@ -35,7 +38,9 @@ const TAG_KIND_LABELS = {
   COUNTRY: (t) => t('Country'),
 };
 
+/** Items per request of the full listing; the grid asks only for the pages it shows. */
 const PAGE_SIZE = 60;
+const selectPage = (data) => data?.node?.items?.edges.map((e) => e.node);
 const RANDOM_SEED = Math.floor(Math.random() * 100000);
 
 function Recommended({ libraryId, kind, genres }) {
@@ -118,22 +123,30 @@ function AllItems({ libraryId, genres, params }) {
     return Object.keys(f).length ? f : undefined;
   }, [tagId, tagKind, unwatched]);
 
-  const variables = {
-    id: libraryId,
-    first: PAGE_SIZE,
-    orderBy: sort.value,
-    direction,
-    filter,
-    seed: sort.value === 'RANDOM' ? RANDOM_SEED : undefined,
-  };
+  // The letters only mean something in title order.
+  const byTitle = sort.value === 'TITLE';
+  const listing = useQuery(LIBRARY_LISTING, { variables: { id: libraryId, filter, letters: byTitle } });
+  // While another filter's count loads, the grid keeps the last one rather than vanishing.
+  const stats = (listing.data ?? listing.previousData)?.node?.stats;
+  const total = stats?.itemCount;
+  const buckets = listing.data?.node?.stats?.firstCharacters;
 
-  const { data, loading, error, fetchMore, refetch } = useQuery(LIBRARY_ITEMS, {
-    variables,
-    notifyOnNetworkStatusChange: true,
-  });
-  const connection = data?.node?.items;
-  const items = connection?.edges.map((e) => e.node) ?? [];
-  const total = data?.node?.stats?.itemCount;
+  const variables = useMemo(
+    () => ({
+      id: libraryId,
+      orderBy: sort.value,
+      direction,
+      filter,
+      seed: sort.value === 'RANDOM' ? RANDOM_SEED : undefined,
+    }),
+    [libraryId, sort.value, direction, filter],
+  );
+  const pages = useOffsetPages({ query: LIBRARY_PAGE, variables, select: selectPage, pageSize: PAGE_SIZE, total });
+  const error = listing.error ?? (pages.loaded ? null : pages.error);
+
+  const gridRef = useRef(null);
+  const [firstVisible, setFirstVisible] = useState(0);
+  const letters = useMemo(() => (byTitle && buckets ? letterOffsets(buckets, direction) : []), [byTitle, buckets, direction]);
 
   const update = (changes) => {
     const next = new URLSearchParams(params);
@@ -145,11 +158,6 @@ function AllItems({ libraryId, genres, params }) {
     // Navigated rather than setParams(), which would write ids' "=" as %3D.
     navigate(`${location.pathname}${queryString(Object.fromEntries(next))}`, { replace: true, state: { keepScroll: true } });
   };
-
-  const loadMore = useCallback(() => {
-    if (!connection?.pageInfo.hasNextPage) return;
-    fetchMore({ variables: { after: connection.pageInfo.endCursor } });
-  }, [connection, fetchMore]);
 
   const genreTags = [
     { key: 'all', label: t('All'), active: !tagId, onClick: () => update({ tag: null, kind: null }) },
@@ -216,18 +224,26 @@ function AllItems({ libraryId, genres, params }) {
       )}
 
       {error ? (
-        <ErrorMessage error={error} onRetry={() => refetch()} />
-      ) : !data && loading ? (
+        <ErrorMessage error={error} onRetry={() => listing.refetch()} />
+      ) : total == null ? (
         <PosterGrid items={[]} skeletonCount={24} />
-      ) : items.length === 0 ? (
+      ) : total === 0 ? (
         <p className={styles.empty}>{t('No items match these filters.')}</p>
       ) : (
-        <PosterGrid
-          items={items}
-          hasMore={connection?.pageInfo.hasNextPage}
-          loadingMore={loading}
-          onLoadMore={loadMore}
-        />
+        <div className={styles.listing} data-letters={letters.length > 1 || undefined}>
+          <VirtualPosterGrid
+            ref={gridRef}
+            total={total}
+            item={pages.item}
+            onRange={pages.request}
+            onFirstVisible={setFirstVisible}
+            resetKey={JSON.stringify(variables)}
+            className={styles.grid}
+          />
+          {letters.length > 1 && (
+            <JumpBar letters={letters} current={firstVisible} onJump={(offset) => gridRef.current?.scrollToIndex(offset)} />
+          )}
+        </div>
       )}
     </>
   );

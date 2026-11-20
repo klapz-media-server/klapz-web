@@ -19,7 +19,7 @@ import { useCanEdit } from '../../hooks/useCanEdit';
 import { useCanonicalPath } from '../../hooks/useCanonicalPath';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { useWatchToggle } from '../../hooks/useWatchToggle';
-import { formatContentRating, formatDate, formatDuration, formatRemaining } from '../../utils/format';
+import { formatContentRating, formatDay, formatDuration, formatRemaining } from '../../utils/format';
 import { libraryPath, moviePath, readParam, tagPath } from '../../utils/routes';
 import styles from './MoviePage.module.css';
 
@@ -45,7 +45,7 @@ export default function MoviePage() {
     tags.directors.nodes.length && { label: t('Directed by'), people: tags.directors.nodes.map(peopleLink) },
     tags.writers.nodes.length && { label: t('Written by'), people: tags.writers.nodes.map(peopleLink) },
     movie.studio && { label: t('Studio'), people: [{ key: 'studio', name: movie.studio }] },
-    movie.releasedOn && { label: t('Released'), people: [{ key: 'date', name: formatDate(movie.releasedOn) }] },
+    movie.releasedOn && { label: t('Released'), people: [{ key: 'date', name: formatDay(movie.releasedOn) }] },
   ].filter(Boolean);
 
   const resume = movie.watchState?.offsetMs > 0 && !movie.watchState.isWatched;

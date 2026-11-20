@@ -22,8 +22,8 @@ let counter = 0;
  * The startStream input for a request, and what the browser will play.
  *
  * `request` is `{ audioId, subtitleId, quality, noDirectPlay, positionMs }`, where
- * `quality` is 'original' (copy the video when possible), 'auto' (adaptive
- * re-encode) or a video bitrate cap in bits per second.
+ * `quality` is 'original' (copy the video when possible), 'auto' (every quality
+ * announced, the player choosing among them) or a video bitrate cap in bits per second.
  */
 export function buildStreamInput({ file, version, request, playbackId, key }) {
   const streams = file.streams ?? [];
@@ -49,12 +49,16 @@ export function buildStreamInput({ file, version, request, playbackId, key }) {
       subtitleScale: 1,
       maxVideoBitrate: typeof request.quality === 'number' ? request.quality : null,
       convertAudio: !!audio && !canDecodeAudio(audio.codec),
-      adaptive: request.quality === 'auto' || !canDecodeVideo(version.videoCodec),
+      // Adaptive on the client's side, as a browser player does it: the manifest lists the
+      // copy of the video (with its real codec) and every encode, and Shaka chooses by the
+      // link. A codec the browser cannot decode goes the same way: Shaka drops the copy and
+      // plays the encodes.
+      quality: request.quality === 'auto' || !canDecodeVideo(version.videoCodec) ? 'CLIENT_ADAPTIVE' : 'FIXED',
       positionMs: Math.max(0, Math.round(request.positionMs ?? 0)),
       key,
       playbackId,
       clientIdentifier: CLIENT_IDENTIFIER,
-      clientProduct: 'Open Web',
+      clientProduct: 'Klapz Web',
     },
     subtitle,
   };

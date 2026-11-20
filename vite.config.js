@@ -21,5 +21,9 @@ export default defineConfig(({ mode }) => {
     },
     server: { port: 5180, strictPort: true, proxy },
     preview: { port: 4173, proxy },
+    test: {
+      environment: 'jsdom',
+      include: ['src/**/*.test.{js,jsx}'],
+    },
   };
 });

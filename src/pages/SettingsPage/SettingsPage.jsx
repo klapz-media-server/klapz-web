@@ -37,7 +37,7 @@ export default function SettingsPage() {
               {s.label(t)}
             </NavLink>
           ))}
-          {session.viewer?.isOperator && (
+          {session.owner && (
             <Link to="/admin" className={styles.navLink} data-secondary>
               <Icon name="grid" size={18} />
               {t('Administration')}
@@ -45,12 +45,7 @@ export default function SettingsPage() {
           )}
         </nav>
         <div className={styles.content}>
-          {!session.supported && (
-            <p className={styles.warning} role="status">
-              {t('This server is too old to tell who is signed in: update open-plex to manage your account here.')}
-            </p>
-          )}
-          {session.loading && !session.viewer && session.supported ? <Spinner /> : <Component session={session} />}
+          {session.loading ? <Spinner /> : <Component session={session} />}
         </div>
       </div>
     </div>

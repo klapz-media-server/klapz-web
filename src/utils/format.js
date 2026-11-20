@@ -30,11 +30,41 @@ export function formatContentRating(rating) {
   return parts[parts.length - 1];
 }
 
-export function formatDate(iso) {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+/** A `DateTime` of the API (RFC 3339, `2024-05-01T12:34:56Z`) as a `Date`, or null. */
+export function parseDateTime(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** A point in time, as a day in the viewer's time zone: `1 May 2024`. */
+export function formatDate(value) {
+  const d = parseDateTime(value);
+  return d ? new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'long', year: 'numeric' }).format(d) : null;
+}
+
+/**
+ * A calendar day the API sends as midnight UTC (`releasedOn`): read in UTC, or a release
+ * on the 1st would show as the 30th west of Greenwich.
+ */
+export function formatDay(value) {
+  const d = parseDateTime(value);
+  return d
+    ? new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(d)
+    : null;
+}
+
+/** A day-only `DateTime` as `2024-05-01`, for a date input. */
+export function dayOf(value) {
+  const d = parseDateTime(value);
+  return d ? d.toISOString().slice(0, 10) : '';
+}
+
+/** `2024-05-01` as the `DateTime` the API takes for a day, or null when it is no real day. */
+export function dateTimeOfDay(day) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return null;
+  const d = parseDateTime(`${day}T00:00:00Z`);
+  return d && d.toISOString().startsWith(day) ? `${day}T00:00:00Z` : null;
 }
 
 export function formatNumber(n) {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // The experimental build is the one that ships the SSA/ASS text parser,
 // the format the server sends text subtitles in.
 import shaka from 'shaka-player/dist/shaka-player.experimental.js';
+import { checkSession } from '../apollo/client';
 
 let polyfilled = false;
 
@@ -93,6 +94,8 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
     const onError = (event) => {
       if (cancelled) return;
       const detail = event.detail ?? event;
+      // A stream refused `401`: its token died with the session, which may be the account's.
+      if (detail.code === shaka.util.Error.Code.BAD_HTTP_STATUS && detail.data?.[1] === 401) checkSession();
       setStatus('error');
       setError({ code: detail.code, message: detail.message });
     };

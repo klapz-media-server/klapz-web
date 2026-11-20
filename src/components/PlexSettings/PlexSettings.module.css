@@ -4,15 +4,6 @@
   line-height: 1.55;
 }
 
-.link {
-  color: var(--color-accent);
-  font-weight: 700;
-}
-
-.link:hover {
-  text-decoration: underline;
-}
-
 .badge {
   flex-shrink: 0;
   height: 28px;

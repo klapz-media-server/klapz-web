@@ -83,11 +83,12 @@ export function useServerTrackOptions({ file, version, request, onChange, canDir
     {
       key: 'auto',
       label: t('Auto'),
-      detail: t('Adaptive transcode'),
+      detail: t('Chosen by the player for the connection'),
       selected: request.quality === 'auto',
       onSelect: () => request.quality !== 'auto' && onChange({ quality: 'auto' }),
     },
-    ...BITRATE_CAPS.filter((cap) => !sourceBitrate || cap < sourceBitrate).map((cap) => ({
+    // In automatic quality the stream already holds every quality: the player lists those.
+    ...BITRATE_CAPS.filter((cap) => request.quality !== 'auto' && (!sourceBitrate || cap < sourceBitrate)).map((cap) => ({
       key: String(cap),
       label: formatBitrate(cap / 1000),
       detail: t('Transcode'),

@@ -7,6 +7,7 @@ import Button from '../Button/Button';
 import Dialog from '../Dialog/Dialog';
 import Icon from '../Icon/Icon';
 import Spinner from '../Spinner/Spinner';
+import { dateTimeOfDay, dayOf } from '../../utils/format';
 import styles from './ItemEditor.module.css';
 
 /** Every editable field: its lock (`ItemField`), its kind of input. */
@@ -42,6 +43,9 @@ const MUTATIONS = {
 
 const asText = (value) => (value === null || value === undefined ? '' : String(value));
 
+/** A field's text in its input: a date is a `DateTime` at midnight UTC, edited as its day. */
+const fieldText = (kind, value) => (kind === 'date' ? dayOf(value) : asText(value));
+
 /** The typed value of a field's text, or `{ invalid }`. An empty text clears the field. */
 function parse(kind, text) {
   const value = text.trim();
@@ -54,7 +58,10 @@ function parse(kind, text) {
     const rating = Number(value.replace(',', '.'));
     return Number.isFinite(rating) && rating >= 0 && rating <= 10 ? { value: rating } : { invalid: true };
   }
-  if (kind === 'date') return /^\d{4}-\d{2}-\d{2}$/.test(value) ? { value } : { invalid: true };
+  if (kind === 'date') {
+    const dateTime = dateTimeOfDay(value);
+    return dateTime ? { value: dateTime } : { invalid: true };
+  }
   // Texts keep their inner line breaks; only the ends are trimmed.
   return { value };
 }
@@ -112,7 +119,7 @@ function EditorForm({ item, formId, onDone, onBusy }) {
   const { t } = useTranslation();
   const type = item.__typename;
   const names = LAYOUT[type];
-  const initial = useMemo(() => Object.fromEntries(names.map((n) => [n, asText(item[n])])), [item, names]);
+  const initial = useMemo(() => Object.fromEntries(names.map((n) => [n, fieldText(FIELDS[n].kind, item[n])])), [item, names]);
   const initiallyLocked = useMemo(() => new Set(item.lockedFields), [item]);
   const [values, setValues] = useState(initial);
   // The locks the editor set by hand; any other follows Plex: editing a field locks it.

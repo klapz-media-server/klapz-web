@@ -3,8 +3,8 @@
  *
  * `startStream` leaves the decision to the client in three places:
  * `directPlay` (send the file as is), `convertAudio` (the browser cannot
- * take the audio) and `adaptive` (always a re-encode — used when the video
- * codec cannot be decoded).
+ * take the audio) and `quality: CLIENT_ADAPTIVE` (every quality listed, the player picks —
+ * also used when the video codec cannot be decoded, the copy being dropped by the player).
  */
 
 const VIDEO_CODECS = {

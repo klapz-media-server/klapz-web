@@ -6,45 +6,18 @@ import Icon from '../../components/Icon/Icon';
 import Logo from '../../components/Logo/Logo';
 import PasswordField from '../../components/PasswordField/PasswordField';
 import TextField from '../../components/TextField/TextField';
+import { FIELD_OF_ACCOUNT_ERROR, USERNAME_PATTERN, useAccountErrorText } from '../../hooks/useAccountErrorText';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { useViewer } from '../../hooks/useViewer';
-import { queryString } from '../../utils/routes';
+import { safeNext, signInPath } from '../../utils/routes';
 import styles from './AuthPage.module.css';
 
 const MIN_PASSWORD = 8;
 
-function useErrorText() {
-  const { t } = useTranslation();
-  return (result) => {
-    switch (result.code) {
-      case 'INVALID_CREDENTIALS':
-        return t('Wrong e-mail address or password.');
-      case 'INACTIVE':
-        return t('Your account waits for the administrator to activate it.');
-      case 'TOO_MANY_ATTEMPTS':
-        return t('Too many attempts. Try again in fifteen minutes.');
-      case 'INVALID_EMAIL':
-        return t('This e-mail address is not valid.');
-      case 'WEAK_PASSWORD':
-        return t('The password needs between 8 and 256 characters.');
-      case 'EMAIL_TAKEN':
-        return t('An account already exists with this address.');
-      default:
-        return /Unknown field|Cannot query field/.test(result.message ?? '')
-          ? t('This server does not handle accounts yet: update open-plex.')
-          : t('The server does not answer. Try again.');
-    }
-  };
-}
-
-/** Only paths of this app: `?next=https://elsewhere` must not send anyone away. */
-function safeNext(value) {
-  return value && value.startsWith('/') && !value.startsWith('//') ? value : '/';
-}
-
 /**
- * /sign-in and /sign-up. A new account waits until the administrator
- * activates it; the session is a cookie the server sets.
+ * /sign-in and /sign-up, the only pages shown to someone not signed in. A new
+ * account waits until an owner of the server activates it; the session is a
+ * cookie the server sets.
  */
 export default function AuthPage({ mode }) {
   const { t } = useTranslation();
@@ -52,10 +25,12 @@ export default function AuthPage({ mode }) {
   const [params] = useSearchParams();
   const next = safeNext(params.get('next'));
   const session = useViewer();
-  const errorText = useErrorText();
+  const errorText = useAccountErrorText();
   const signingUp = mode === 'sign-up';
   usePageTitle(signingUp ? t('Create an account') : t('Sign in'));
 
+  const [login, setLogin] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
@@ -63,37 +38,39 @@ export default function AuthPage({ mode }) {
   const [busy, setBusy] = useState(false);
   const [created, setCreated] = useState(null);
 
-  if (session.viewer?.user) return <Navigate to={next} replace />;
+  if (session.user) return <Navigate to={next} replace />;
 
   const submit = async (e) => {
     e.preventDefault();
     setError(null);
     if (signingUp) {
-      if (password.length < MIN_PASSWORD) return setError({ field: 'password', text: t('The password needs between 8 and 256 characters.') });
+      if (!USERNAME_PATTERN.test(username.trim())) return setError({ field: 'username', text: errorText({ code: 'INVALID_USERNAME' }) });
+      if (password.length < MIN_PASSWORD) return setError({ field: 'password', text: errorText({ code: 'WEAK_PASSWORD' }) });
       if (password !== confirmation) return setError({ field: 'confirmation', text: t('The two passwords differ.') });
+    } else if (!login.trim() || !password) {
+      return setError({ field: login.trim() ? 'password' : 'login', text: t('Enter your username or e-mail address, and your password.') });
     }
     setBusy(true);
-    const result = signingUp ? await session.signUp(email, password) : await session.signIn(email, password);
+    const result = signingUp ? await session.signUp({ username, email, password }) : await session.signIn(login, password);
     setBusy(false);
     if (result.ok) {
-      if (signingUp) setCreated(email.trim());
+      if (signingUp) setCreated(username.trim().toLowerCase());
       else navigate(next, { replace: true });
       return;
     }
-    const field = result.field ?? (result.code === 'INVALID_EMAIL' || result.code === 'EMAIL_TAKEN' ? 'email' : result.code === 'WEAK_PASSWORD' ? 'password' : null);
+    const field = signingUp ? (result.field ?? FIELD_OF_ACCOUNT_ERROR[result.code] ?? null) : null;
     setError({ field, text: errorText(result), code: result.code });
   };
 
-  const other = signingUp ? '/sign-in' : '/sign-up';
-  const otherLink = `${other}${queryString({ next: next === '/' ? null : next })}`;
+  const otherLink = signInPath(next, signingUp ? '/sign-in' : '/sign-up');
 
   return (
     <div className={styles.page}>
       <div className={styles.glow} aria-hidden="true" />
       <main className={styles.card}>
-        <Link to="/" className={styles.logo} aria-label={t('Home')}>
+        <span className={styles.logo}>
           <Logo />
-        </Link>
+        </span>
 
         {created ? (
           <div className={styles.done} role="status">
@@ -102,9 +79,9 @@ export default function AuthPage({ mode }) {
             </span>
             <h1 className={styles.title}>{t('Account created')}</h1>
             <p className={styles.lead}>
-              {t('An administrator must activate {{email}} before you can sign in. You will then sign in with this address and password.', { email: created })}
+              {t('An owner of the server must activate {{username}} before you can sign in. You will then sign in with this username and password.', { username: created })}
             </p>
-            <Button variant="primary" onClick={() => navigate(`/sign-in${queryString({ next: next === '/' ? null : next })}`)}>
+            <Button variant="primary" onClick={() => navigate(signInPath(next))}>
               {t('Back to sign in')}
             </Button>
           </div>
@@ -113,23 +90,48 @@ export default function AuthPage({ mode }) {
             <h1 className={styles.title}>{signingUp ? t('Create an account') : t('Sign in')}</h1>
             <p className={styles.lead}>
               {signingUp
-                ? t('Your account will be usable once an administrator activates it.')
-                : session.viewer?.isOperator
-                  ? t('You use this server as its operator. Sign in to use your own account.')
-                  : t('Sign in to watch your libraries.')}
+                ? t('Your account will be usable once an owner of the server activates it.')
+                : t('Sign in to watch your libraries.')}
             </p>
 
             <form className={styles.form} onSubmit={submit} noValidate>
-              <TextField
-                label={t('E-mail address')}
-                type="email"
-                autoComplete={signingUp ? 'email' : 'username'}
-                required
-                autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                error={error?.field === 'email' ? error.text : null}
-              />
+              {signingUp ? (
+                <>
+                  <TextField
+                    label={t('Username')}
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    required
+                    autoFocus
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    hint={t('3 to 32 letters, digits, dots, dashes or underscores.')}
+                    error={error?.field === 'username' ? error.text : null}
+                  />
+                  <TextField
+                    label={t('E-mail address (optional)')}
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    hint={t('You can sign in with it too.')}
+                    error={error?.field === 'email' ? error.text : null}
+                  />
+                </>
+              ) : (
+                <TextField
+                  label={t('Username or e-mail address')}
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  required
+                  autoFocus
+                  value={login}
+                  onChange={(e) => setLogin(e.target.value)}
+                  error={error?.field === 'login' ? error.text : null}
+                />
+              )}
               <PasswordField
                 label={t('Password')}
                 autoComplete={signingUp ? 'new-password' : 'current-password'}
@@ -149,7 +151,7 @@ export default function AuthPage({ mode }) {
                   error={error?.field === 'confirmation' ? error.text : null}
                 />
               )}
-              {error && !['email', 'password', 'confirmation'].includes(error.field) && (
+              {error && !error.field && (
                 <p className={styles.error} role="alert" data-code={error.code}>
                   <Icon name={error.code === 'INACTIVE' ? 'lock' : 'info'} size={18} />
                   {error.text}

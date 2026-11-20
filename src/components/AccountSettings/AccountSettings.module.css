@@ -92,19 +92,4 @@
   font-size: 14px;
 }
 
-.signIn {
-  flex-shrink: 0;
-  height: 32px;
-  padding: 0 14px;
-  display: inline-flex;
-  align-items: center;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-  font-size: 13px;
-  font-weight: 700;
-}
 
-.signIn:hover {
-  background: var(--color-accent-hover);
-}

@@ -81,19 +81,56 @@ export const REPORT_VIEWING = gql`
   }
 `;
 
-// ---- administration (operator only)
+// ---- administration (owners only)
+
+const ACCOUNT_ERRORS = `
+  userErrors {
+    field
+    code
+    message
+  }
+`;
+
+/** What the admin page shows of a user, so a mutation's answer updates its card in place. */
+const ADMIN_USER = `
+  id
+  username
+  email
+  role
+  builtIn
+  active
+  hasPassword
+  createdAt
+`;
 
 export const CREATE_USER = gql`
-  mutation CreateUser($email: String!) {
-    createUser(email: $email) {
-      id
+  mutation CreateUser($input: CreateUserInput!) {
+    createUser(input: $input) {
+      user {
+        ${ADMIN_USER}
+      }
+      ${ACCOUNT_ERRORS}
     }
   }
 `;
 
 export const DELETE_USER = gql`
-  mutation DeleteUser($id: ID!) {
-    deleteUser(id: $id)
+  mutation DeleteUser($input: UserInput!) {
+    deleteUser(input: $input) {
+      deleted
+      ${ACCOUNT_ERRORS}
+    }
+  }
+`;
+
+export const SET_USER_ROLE = gql`
+  mutation SetUserRole($input: SetUserRoleInput!) {
+    setUserRole(input: $input) {
+      user {
+        ${ADMIN_USER}
+      }
+      ${ACCOUNT_ERRORS}
+    }
   }
 `;
 
@@ -172,7 +209,7 @@ export const SIGN_IN = gql`
     signIn(input: $input) {
       user {
         id
-        email
+        username
       }
       userErrors {
         field
@@ -189,19 +226,23 @@ export const SIGN_OUT = gql`
 `;
 
 export const ACTIVATE_USER = gql`
-  mutation ActivateUser($id: ID!) {
-    activateUser(id: $id) {
-      id
-      active
+  mutation ActivateUser($input: UserInput!) {
+    activateUser(input: $input) {
+      user {
+        ${ADMIN_USER}
+      }
+      ${ACCOUNT_ERRORS}
     }
   }
 `;
 
 export const DEACTIVATE_USER = gql`
-  mutation DeactivateUser($id: ID!) {
-    deactivateUser(id: $id) {
-      id
-      active
+  mutation DeactivateUser($input: UserInput!) {
+    deactivateUser(input: $input) {
+      user {
+        ${ADMIN_USER}
+      }
+      ${ACCOUNT_ERRORS}
     }
   }
 `;

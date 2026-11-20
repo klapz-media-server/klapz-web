@@ -1,0 +1,135 @@
+# Tests, then the build zipped; on the default branch, a release with the next version.
+#
+# Versions are git tags `vX.Y.Z`. Each push to the default branch releases the last one
+# with its patch number raised (the first release takes package.json's version). Run the
+# workflow by hand to raise the minor or the major instead.
+name: CI
+
+on:
+  push:
+    branches: ['**']
+    tags-ignore: ['**']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Part of the version to raise (on the default branch)
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+
+# One run at a time per branch: two pushes in a row must not compute the same version.
+# Elsewhere than the default branch, a newer push cancels the older run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != format('refs/heads/{0}', github.event.repository.default_branch) }}
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 24
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  build:
+    name: Build
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      archive: ${{ steps.zip.outputs.archive }}
+      release: ${{ steps.version.outputs.release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the tags, to find the last version
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Next version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump || 'patch' }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          last=$(git tag --list 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || true)
+          if [ -z "$last" ]; then
+            next=$(node -p "require('./package.json').version")
+          else
+            IFS=. read -r major minor patch <<< "${last#v}"
+            case "$BUMP" in
+              major) next="$((major + 1)).0.0" ;;
+              minor) next="$major.$((minor + 1)).0" ;;
+              *)     next="$major.$minor.$((patch + 1))" ;;
+            esac
+          fi
+          if [ "$GITHUB_EVENT_NAME" != pull_request ] && [ "$GITHUB_REF_NAME" = "$DEFAULT_BRANCH" ]; then
+            release=true
+            version="$next"
+          else
+            release=false
+            # `g` keeps the identifier valid semver when the hash starts with a 0.
+            version="$next-dev.g$(git rev-parse --short HEAD)"
+          fi
+          echo "Last release: ${last:-none} — this build: $version (release: $release)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+
+      - run: npm ci
+
+      - name: Stamp the version
+        run: npm version "${{ steps.version.outputs.version }}" --no-git-tag-version --allow-same-version
+
+      - run: npm run build
+
+      - name: Zip
+        id: zip
+        run: |
+          archive="klapz-web-${{ steps.version.outputs.version }}.zip"
+          (cd dist && zip -qr "../$archive" .)
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: klapz-web
+          path: ${{ steps.zip.outputs.archive }}
+          if-no-files-found: error
+
+  release:
+    name: Release
+    needs: build
+    if: needs.build.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: klapz-web
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.build.outputs.version }}
+          ARCHIVE: ${{ needs.build.outputs.archive }}
+        run: |
+          gh release create "v$VERSION" "$ARCHIVE" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Klapz Web $VERSION" \
+            --generate-notes

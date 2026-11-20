@@ -24,6 +24,24 @@ const isTyping = (el) => el && (/^(input|textarea|select)$/i.test(el.tagName) ||
 const REPORT_INTERVAL = 10000;
 
 /**
+ * The caller's options, with an adaptive stream's qualities — the ones in its manifest —
+ * under "Auto": picking one pins it in the player, without restarting the stream.
+ */
+function withPlayerQualities(trackOptions, shakaOptions, shakaState) {
+  if (!trackOptions) return shakaOptions;
+  if (!trackOptions.adaptive || shakaState.tracks.video.length === 0) return trackOptions;
+  const [auto, ...rungs] = shakaOptions.quality;
+  return {
+    ...trackOptions,
+    quality: trackOptions.quality.flatMap((option) =>
+      option.key === 'auto'
+        ? [{ ...option, detail: auto.detail ?? option.detail, selected: shakaState.abr, onSelect: auto.onSelect }, ...rungs]
+        : [option],
+    ),
+  };
+}
+
+/**
  * Full-viewport video player on Shaka Player, with a custom UI in the
  * style of the Plex web player.
  *
@@ -61,7 +79,7 @@ export default function VideoPlayer({
   const media = useMediaState(videoRef);
   const shakaState = useShakaPlayer(videoRef, src, captionsRef, { startTime, mimeType, textTrack });
   const shakaOptions = useShakaTrackOptions(shakaState);
-  const options = trackOptions ?? shakaOptions;
+  const options = withPlayerQualities(trackOptions, shakaOptions, shakaState);
   const [fullscreen, toggleFullscreen] = useFullscreen(rootRef);
   const [settingsTab, setSettingsTab] = useState(null);
   const [scrubbing, setScrubbing] = useState(false);

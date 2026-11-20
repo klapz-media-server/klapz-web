@@ -37,11 +37,38 @@
   flex-direction: column;
 }
 
-.email {
+.username {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   color: var(--color-text-primary);
   font-size: 15px;
   font-weight: 700;
   overflow-wrap: anywhere;
+}
+
+.you {
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.roleChip {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: rgba(77, 178, 136, 0.14);
+  color: var(--color-success);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .meta {

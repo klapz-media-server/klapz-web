@@ -1,0 +1,42 @@
+/* The full height of the listing; only `.window` holds cards. */
+.frame {
+  --pad-right: var(--gutter);
+  position: relative;
+  padding: 0 var(--pad-right) 0 var(--gutter);
+  column-gap: var(--card-gap);
+  row-gap: 28px;
+}
+
+.window {
+  position: absolute;
+  top: 0;
+  left: var(--gutter);
+  right: var(--pad-right);
+  display: grid;
+  column-gap: var(--card-gap);
+  row-gap: 28px;
+  will-change: transform;
+}
+
+.cell {
+  min-width: 0;
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skeletonPoster {
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.skeletonLine {
+  height: 12px;
+  width: 70%;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}

@@ -5,66 +5,88 @@ import Button from '../../components/Button/Button';
 import Dialog from '../../components/Dialog/Dialog';
 import ErrorMessage from '../../components/ErrorMessage/ErrorMessage';
 import Icon from '../../components/Icon/Icon';
+import NowPlaying from '../../components/NowPlaying/NowPlaying';
 import Spinner from '../../components/Spinner/Spinner';
 import TextField from '../../components/TextField/TextField';
 import UserCard from '../../components/UserCard/UserCard';
 import { CREATE_USER, DELETE_USER } from '../../graphql/mutations';
-import { ADMIN_USERS } from '../../graphql/queries';
+import { ADMIN_USERS, VIEWER } from '../../graphql/queries';
+import { FIELD_OF_ACCOUNT_ERROR, USERNAME_PATTERN, useAccountErrorText } from '../../hooks/useAccountErrorText';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { useViewer } from '../../hooks/useViewer';
 import styles from './AdminPage.module.css';
 
-const refetch = { refetchQueries: [{ query: ADMIN_USERS }], awaitRefetchQueries: true };
-
-/** "not found" is what the API answers to anyone but the operator. */
-export const isDenied = (error) => /not found/i.test(error?.message ?? '');
+const refetch = { refetchQueries: [{ query: ADMIN_USERS }, { query: VIEWER }], awaitRefetchQueries: true };
 
 /**
- * Server administration: users, their access to each library, and whether
- * Plex apps may use the server on their behalf. Operator only.
+ * Server administration: users, their role on the server and on each library, and
+ * whether Plex apps may use the server on their behalf. For the server's owners.
  */
 export default function AdminPage() {
   const { t } = useTranslation();
   usePageTitle(t('Administration'));
-  const { data, loading, error, refetch: reload } = useQuery(ADMIN_USERS);
+  const { user: me, owner } = useViewer();
+  const { data, loading, error, refetch: reload } = useQuery(ADMIN_USERS, { skip: !owner });
   const [createUser, creating] = useMutation(CREATE_USER, refetch);
   const [deleteUser, deleting] = useMutation(DELETE_USER, refetch);
+  const errorText = useAccountErrorText();
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [fieldError, setFieldError] = useState(null);
   const [message, setMessage] = useState(null);
   const [newUserId, setNewUserId] = useState(null);
   const [toDelete, setToDelete] = useState(null);
   const [credentials, setCredentials] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  if (loading && !data) return <Spinner fullPage />;
-  if (error) {
-    return isDenied(error) ? (
+  if (!owner) {
+    return (
       <div className={styles.page}>
-        <ErrorMessage title={t('Reserved for the server operator')}>
-          <p className={styles.denied}>{t('Open this page from a trusted network, or with the operator token.')}</p>
+        <ErrorMessage title={t('Reserved for the owners of the server')}>
+          <p className={styles.denied}>{t('Ask an owner of the server to make you one.')}</p>
         </ErrorMessage>
       </div>
-    ) : (
+    );
+  }
+  if (loading && !data) return <Spinner fullPage />;
+  if (error) {
+    return (
       <div className={styles.page}>
         <ErrorMessage error={error} onRetry={() => reload()} />
       </div>
     );
   }
 
-  // Those waiting for activation first: they are what the operator comes here for.
-  const users = [...data.users.nodes].sort((a, b) => Number(a.active) - Number(b.active));
+  // Those waiting for activation first: they are what an owner comes here for.
+  const users = [...data.users.nodes].sort(
+    (a, b) => Number(a.active) - Number(b.active) || a.username.localeCompare(b.username),
+  );
   const waiting = users.filter((u) => !u.active).length;
   const libraries = data.libraries.nodes;
-  const fail = (e) => setMessage(isDenied(e) ? t('Not found, or not allowed.') : e.message);
+  /** A refusal: a payload's first `userErrors` entry, or a request that failed. */
+  const fail = (e) => setMessage(e?.code ? errorText(e) : errorText({ code: 'NETWORK', message: e?.message }));
 
   const add = async (e) => {
     e.preventDefault();
     setMessage(null);
-    const value = email.trim();
-    if (!value) return;
+    setFieldError(null);
+    const name = username.trim();
+    if (!USERNAME_PATTERN.test(name)) {
+      setFieldError({ field: 'username', text: errorText({ code: 'INVALID_USERNAME' }) });
+      return;
+    }
     try {
-      const { data: created } = await createUser({ variables: { email: value } });
+      const { data: answer } = await createUser({ variables: { input: { username: name, email: email.trim() || null } } });
+      const refusal = answer.createUser.userErrors[0];
+      if (refusal) {
+        const field = FIELD_OF_ACCOUNT_ERROR[refusal.code] ?? refusal.field?.at(-1);
+        if (field === 'username' || field === 'email') setFieldError({ field, text: errorText(refusal) });
+        else fail(refusal);
+        return;
+      }
+      setUsername('');
       setEmail('');
-      setNewUserId(created.createUser.id);
+      setNewUserId(answer.createUser.user.id);
     } catch (err) {
       fail(err);
     }
@@ -72,11 +94,13 @@ export default function AdminPage() {
 
   const confirmDelete = async () => {
     try {
-      await deleteUser({ variables: { id: toDelete.id } });
-      setToDelete(null);
+      const { data: answer } = await deleteUser({ variables: { input: { userId: toDelete.id } } });
+      const refusal = answer.deleteUser.userErrors[0];
+      if (refusal) fail(refusal);
     } catch (err) {
-      setToDelete(null);
       fail(err);
+    } finally {
+      setToDelete(null);
     }
   };
 
@@ -109,15 +133,35 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <form className={styles.add} onSubmit={add}>
+      <NowPlaying />
+
+      <h2 className={styles.sectionTitle}>{t('Users')}</h2>
+      <form className={styles.add} onSubmit={add} noValidate>
+        <TextField
+          className={styles.addField}
+          required
+          autoCapitalize="none"
+          spellCheck={false}
+          placeholder={t('username')}
+          aria-label={t('Username of the new user')}
+          value={username}
+          onChange={(e) => {
+            setUsername(e.target.value);
+            setFieldError(null);
+          }}
+          error={fieldError?.field === 'username' ? fieldError.text : null}
+        />
         <TextField
           className={styles.addField}
           type="email"
-          required
-          placeholder="name@example.org"
-          aria-label={t('E-mail address of the new user')}
+          placeholder={t('name@example.org (optional)')}
+          aria-label={t('E-mail address of the new user (optional)')}
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setFieldError(null);
+          }}
+          error={fieldError?.field === 'email' ? fieldError.text : null}
         />
         <Button type="submit" variant="accent" icon="person" loading={creating.loading}>
           {t('Add user')}
@@ -131,20 +175,21 @@ export default function AdminPage() {
       )}
 
       {users.length === 0 ? (
-        <p className={styles.empty}>{t('No users yet. Add one with their e-mail address.')}</p>
+        <p className={styles.empty}>{t('No users yet. Add one with a username.')}</p>
       ) : (
         <div className={styles.list}>
           {users.map((user) => (
             <UserCard
               key={user.id}
               user={user}
+              self={user.id === me?.id}
               libraries={libraries}
               defaultOpen={user.id === newUserId}
               onDelete={setToDelete}
               onError={fail}
               onToken={(u, connected) => {
                 setCopied(false);
-                setCredentials({ email: u.email, token: connected.token, server: connected.userExtension.externalId });
+                setCredentials({ username: u.username, token: connected.token, server: connected.userExtension.externalId });
               }}
             />
           ))}
@@ -154,7 +199,7 @@ export default function AdminPage() {
       <Dialog
         open={!!toDelete}
         onClose={() => setToDelete(null)}
-        title={t('Delete {{email}}?', { email: toDelete?.email })}
+        title={t('Delete {{username}}?', { username: toDelete?.username })}
         description={t('Their library access and Plex connection are removed too. This cannot be undone.')}
         actions={
           <>
@@ -171,7 +216,7 @@ export default function AdminPage() {
       <Dialog
         open={!!credentials}
         onClose={() => setCredentials(null)}
-        title={t('Plex token for {{email}}', { email: credentials?.email })}
+        title={t('Plex token for {{username}}', { username: credentials?.username })}
         description={t('Copy it now: it is shown only once, and the server only keeps a digest of it.')}
         actions={
           <Button variant="primary" onClick={() => setCredentials(null)}>

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { episodeCode, progressRatio, seasonCount, seasonLabel } from '../../utils/format';
@@ -37,7 +38,7 @@ export function describeItem(item) {
 }
 
 /** A 2:3 poster with title and subtitle, as in the Plex library grids. */
-export default function PosterCard({ item, fluid = false, active = false, replace = false, title: titleOverride, subtitle: subtitleOverride }) {
+function PosterCard({ item, fluid = false, active = false, replace = false, title: titleOverride, subtitle: subtitleOverride }) {
   const { t } = useTranslation();
   const described = describeItem(item);
   const title = titleOverride ?? described.title;
@@ -90,3 +91,7 @@ export default function PosterCard({ item, fluid = false, active = false, replac
     </Link>
   );
 }
+
+// Memoized: a virtual grid re-renders its window on every row scrolled; the cards already
+// shown, with the same item from the cache, stay as they are.
+export default memo(PosterCard);

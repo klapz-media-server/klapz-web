@@ -77,12 +77,6 @@ export default function TopBar() {
       </nav>
       <div className={styles.end}>
         <AccountMenu />
-        {data?.server && (
-          <div className={styles.server} title={t('Server {{name}}', { name: data.server.friendlyName })}>
-            <span className={styles.serverDot} />
-            <span className={styles.serverName}>{data.server.friendlyName}</span>
-          </div>
-        )}
       </div>
     </header>
   );

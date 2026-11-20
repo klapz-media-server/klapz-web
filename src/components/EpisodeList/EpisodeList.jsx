@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useWatchToggle } from '../../hooks/useWatchToggle';
-import { formatDate, formatDuration, formatRemaining, progressRatio } from '../../utils/format';
+import { formatDay, formatDuration, formatRemaining, progressRatio } from '../../utils/format';
 import { playPath } from '../../utils/routes';
 import Artwork from '../Artwork/Artwork';
 import Icon from '../Icon/Icon';
@@ -53,7 +53,7 @@ function EpisodeRow({ episode, onEdit }) {
           )}
         </div>
         <p className={styles.meta}>
-          {[formatDuration(episode.durationMs), remaining, formatDate(episode.releasedOn)].filter(Boolean).join(' · ')}
+          {[formatDuration(episode.durationMs), remaining, formatDay(episode.releasedOn)].filter(Boolean).join(' · ')}
         </p>
         {episode.summary && <p className={styles.summary}>{episode.summary}</p>}
       </div>

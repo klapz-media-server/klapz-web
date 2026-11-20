@@ -26,10 +26,13 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
   const streams = file.streams ?? [];
   const [request, setRequest] = useState(() => {
     const audioId = defaultAudioId(streams);
+    const audio = streams.find((s) => s.id === audioId);
     return {
       audioId,
       subtitleId: defaultSubtitleId(streams, audioId),
-      quality: 'original',
+      // The file as is when the browser plays it; otherwise every quality, the player
+      // choosing by the link — the copy of the video first when the file allows it.
+      quality: directPlayMime(version, audio?.codec) ? 'original' : 'auto',
       noDirectPlay: false,
       positionMs: startMs,
     };
@@ -44,7 +47,10 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
   );
 
   const canDirectPlay = !!directPlayMime(version);
-  const trackOptions = useServerTrackOptions({ file, version, request, onChange: change, canDirectPlay });
+  const serverOptions = useServerTrackOptions({ file, version, request, onChange: change, canDirectPlay });
+  // The qualities of an adaptive stream are the player's to choose: VideoPlayer lists them.
+  const adaptive = session.input?.quality === 'CLIENT_ADAPTIVE' && stream?.delivery !== 'DIRECT_PLAY';
+  const trackOptions = useMemo(() => ({ ...serverOptions, adaptive }), [serverOptions, adaptive]);
 
   // ---- reports
   const report = useCallback(

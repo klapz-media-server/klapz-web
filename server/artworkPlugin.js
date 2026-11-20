@@ -1,7 +1,7 @@
 /**
  * Vite plugin serving artwork under `/artwork`.
  *
- * The open-plex GraphQL API exposes no image fields yet, but each item carries
+ * The Klapz GraphQL API exposes no image fields yet, but each item carries
  * a `plex://<type>/<id>` guid. The Plex metadata provider resolves that guid
  * to poster / background / logo URLs; we then redirect the browser to the
  * Plex image resizer so it only downloads the size it needs.
