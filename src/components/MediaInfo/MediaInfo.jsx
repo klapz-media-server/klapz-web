@@ -38,7 +38,7 @@ export default function MediaInfo({ versions, title }) {
           const videoStream = streams.find((s) => s.kind === 'VIDEO');
           const audio = streams.filter((s) => s.kind === 'AUDIO');
           const subtitles = streams.filter((s) => s.kind === 'SUBTITLE');
-          const size = files.reduce((sum, f) => sum + (f.sizeBytes ?? 0), 0);
+          const size = files.reduce((sum, f) => sum + Number(f.sizeBytes ?? 0), 0); // sizeBytes is a string (64-bit)
           const res = resolutionLabel(version.width, version.height);
           const hdr = dynamicRange(videoStream);
 

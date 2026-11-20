@@ -1,4 +1,4 @@
-# Tests, then the build zipped; on the default branch, a release with the next version.
+# Tests, then the build zipped twice (-bundled under /web/, -standalone at /); on the default branch, a release with the next version.
 #
 # Versions are git tags `vX.Y.Z`. Each push to the default branch releases the last one
 # with its patch number raised (the first release takes package.json's version). Run the
@@ -49,7 +49,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
-      archive: ${{ steps.zip.outputs.archive }}
       release: ${{ steps.version.outputs.release }}
     steps:
       - uses: actions/checkout@v4
@@ -95,19 +94,23 @@ jobs:
       - name: Stamp the version
         run: npm version "${{ steps.version.outputs.version }}" --no-git-tag-version --allow-same-version
 
-      - run: npm run build
-
-      - name: Zip
-        id: zip
+      # Two variants, differing only by their public base path (VITE_PUBLIC_PATH):
+      # -bundled is served by Klapz under /web/, -standalone at the root of its own host.
+      - name: Build and zip
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          archive="klapz-web-${{ steps.version.outputs.version }}.zip"
-          (cd dist && zip -qr "../$archive" .)
-          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+          build() {
+            VITE_PUBLIC_PATH="$2" npm run build
+            (cd dist && zip -qr "../klapz-web-$VERSION-$1.zip" .)
+          }
+          build bundled /web/
+          build standalone /
 
       - uses: actions/upload-artifact@v4
         with:
           name: klapz-web
-          path: ${{ steps.zip.outputs.archive }}
+          path: klapz-web-${{ steps.version.outputs.version }}-*.zip
           if-no-files-found: error
 
   release:
@@ -126,9 +129,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.build.outputs.version }}
-          ARCHIVE: ${{ needs.build.outputs.archive }}
         run: |
-          gh release create "v$VERSION" "$ARCHIVE" \
+          gh release create "v$VERSION" klapz-web-*.zip \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "Klapz Web $VERSION" \

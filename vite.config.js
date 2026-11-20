@@ -13,6 +13,8 @@ export default defineConfig(({ mode }) => {
   };
 
   return {
+    // Public base path: `/` when served on its own, `/web/` when bundled with Klapz.
+    base: env.VITE_PUBLIC_PATH || '/',
     plugins: [react(), artworkPlugin({ token: env.PLEX_TOKEN })],
     css: {
       modules: {
