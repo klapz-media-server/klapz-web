@@ -2,18 +2,24 @@ import { useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { useQuery } from '@apollo/client/react';
 import { useTranslation } from 'react-i18next';
+import Button from '../../components/Button/Button';
 import Dropdown, { DropdownItem } from '../../components/Dropdown/Dropdown';
 import ErrorMessage from '../../components/ErrorMessage/ErrorMessage';
 import Icon from '../../components/Icon/Icon';
 import JumpBar, { letterOffsets } from '../../components/JumpBar/JumpBar';
+import LibraryDeleteDialog from '../../components/LibraryDeleteDialog/LibraryDeleteDialog';
+import LibraryEditor from '../../components/LibraryEditor/LibraryEditor';
 import MediaRow from '../../components/MediaRow/MediaRow';
 import PosterGrid from '../../components/PosterGrid/PosterGrid';
+import ScanButton from '../../components/ScanButton/ScanButton';
 import Spinner from '../../components/Spinner/Spinner';
 import TagList from '../../components/TagList/TagList';
 import VirtualPosterGrid from '../../components/VirtualPosterGrid/VirtualPosterGrid';
 import { LIBRARY_INFO, LIBRARY_ITEMS, LIBRARY_LISTING, LIBRARY_PAGE, RECENTLY_ADDED, TAG_NAME } from '../../graphql/queries';
+import { useCanEdit } from '../../hooks/useCanEdit';
 import { useOffsetPages } from '../../hooks/useOffsetPages';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { useViewer } from '../../hooks/useViewer';
 import { formatNumber } from '../../utils/format';
 import { libraryPath, queryString, readParam, tagPath } from '../../utils/routes';
 import styles from './LibraryPage.module.css';
@@ -257,6 +263,11 @@ export default function LibraryPage() {
   const { data, loading, error, refetch } = useQuery(LIBRARY_INFO, { variables: { id } });
   const library = data?.node;
   usePageTitle(library?.title);
+  const navigate = useNavigate();
+  const canEdit = useCanEdit(id);
+  const { owner } = useViewer();
+  const [editing, setEditing] = useState(false);
+  const [deleting, setDeleting] = useState(null);
 
   if (loading && !data) return <Spinner fullPage />;
   if (error) return <ErrorMessage error={error} onRetry={() => refetch()} />;
@@ -272,6 +283,22 @@ export default function LibraryPage() {
             <Icon name={library.kind === 'SHOW' ? 'tv' : 'movie'} size={22} />
           </span>
           <h1 className={styles.title}>{library.title}</h1>
+          {canEdit && (
+            <div className={styles.manage}>
+              <ScanButton libraryId={id} />
+              <Button size="sm" variant="ghost" icon="edit" aria-label={t('Edit the library')} title={t('Edit the library')} onClick={() => setEditing(true)} />
+              {owner && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  icon="trash"
+                  aria-label={t('Delete the library')}
+                  title={t('Delete the library')}
+                  onClick={() => setDeleting(library)}
+                />
+              )}
+            </div>
+          )}
         </div>
         <nav className={styles.tabs} aria-label={t('Library views')}>
           <Link
@@ -306,6 +333,9 @@ export default function LibraryPage() {
       ) : (
         <AllItems key={id} libraryId={id} genres={genres} params={params} />
       )}
+
+      <LibraryEditor open={editing} library={{ id }} onClose={() => setEditing(false)} />
+      <LibraryDeleteDialog library={deleting} onClose={() => setDeleting(null)} onDeleted={() => navigate('/', { replace: true })} />
     </div>
   );
 }

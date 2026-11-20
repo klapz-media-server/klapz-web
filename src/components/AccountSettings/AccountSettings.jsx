@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { formatDate } from '../../utils/format';
 import Button from '../Button/Button';
+import PasswordSettings from '../PasswordSettings/PasswordSettings';
 import SettingsSection from '../SettingsSection/SettingsSection';
 import styles from './AccountSettings.module.css';
 
@@ -64,6 +65,7 @@ export default function AccountSettings({ session }) {
           </div>
         )}
       </SettingsSection>
+      <PasswordSettings user={user} />
     </div>
   );
 }

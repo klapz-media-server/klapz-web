@@ -2,6 +2,7 @@ import { Link, NavLink, Navigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import AccountSettings from '../../components/AccountSettings/AccountSettings';
 import Icon from '../../components/Icon/Icon';
+import JellyfinSettings from '../../components/JellyfinSettings/JellyfinSettings';
 import PlexSettings from '../../components/PlexSettings/PlexSettings';
 import PreferencesSettings from '../../components/PreferencesSettings/PreferencesSettings';
 import Spinner from '../../components/Spinner/Spinner';
@@ -12,6 +13,7 @@ import styles from './SettingsPage.module.css';
 const SECTIONS = [
   { id: 'account', icon: 'person', label: (t) => t('Account'), Component: AccountSettings },
   { id: 'plex', icon: 'server', label: (t) => t('Plex'), Component: PlexSettings },
+  { id: 'jellyfin', icon: 'tv', label: (t) => t('Jellyfin'), Component: JellyfinSettings },
   { id: 'preferences', icon: 'settings', label: (t) => t('Preferences'), Component: PreferencesSettings },
 ];
 

@@ -289,3 +289,116 @@ export const UPDATE_EPISODE = gql`
     }
   }
 `;
+
+/** What the library editor shows and the cache needs to update every list of libraries. */
+const LIBRARY_SETTINGS_FIELDS = `
+  id
+  title
+  kind
+  language
+  hidden
+  scanning
+  roots {
+    id
+    path
+  }
+`;
+
+const LIBRARY_ERRORS = `
+  userErrors {
+    field
+    code
+  }
+`;
+
+export const CREATE_LIBRARY = gql`
+  mutation CreateLibrary($input: CreateLibraryInput!) {
+    createLibrary(input: $input) {
+      library {
+        ${LIBRARY_SETTINGS_FIELDS}
+      }
+      ${LIBRARY_ERRORS}
+    }
+  }
+`;
+
+export const UPDATE_LIBRARY = gql`
+  mutation UpdateLibrary($input: UpdateLibraryInput!) {
+    updateLibrary(input: $input) {
+      library {
+        ${LIBRARY_SETTINGS_FIELDS}
+      }
+      ${LIBRARY_ERRORS}
+    }
+  }
+`;
+
+export const DELETE_LIBRARY = gql`
+  mutation DeleteLibrary($input: DeleteLibraryInput!) {
+    deleteLibrary(input: $input) {
+      deletedLibraryId
+      ${LIBRARY_ERRORS}
+    }
+  }
+`;
+
+export const SCAN_LIBRARY = gql`
+  mutation ScanLibrary($input: ScanLibraryInput!) {
+    scanLibrary(input: $input) {
+      library {
+        id
+        scanning
+        scannedAt
+      }
+      ${LIBRARY_ERRORS}
+    }
+  }
+`;
+
+export const CANCEL_LIBRARY_SCAN = gql`
+  mutation CancelLibraryScan($input: CancelLibraryScanInput!) {
+    cancelLibraryScan(input: $input) {
+      cancelled
+      ${LIBRARY_ERRORS}
+    }
+  }
+`;
+
+export const CONNECT_JELLYFIN = gql`
+  mutation ConnectJellyfin($userId: ID!) {
+    connectExtension(userId: $userId, extension: JELLYFIN) {
+      userExtension {
+        extension
+        externalId
+        enabled
+      }
+    }
+  }
+`;
+
+export const DISABLE_JELLYFIN = gql`
+  mutation DisableJellyfin($userId: ID!) {
+    disableExtension(userId: $userId, extension: JELLYFIN)
+  }
+`;
+
+export const FORGET_JELLYFIN_DEVICE = gql`
+  mutation ForgetJellyfinDevice($userId: ID!, $deviceId: String!) {
+    forgetExtensionDevice(userId: $userId, extension: JELLYFIN, deviceId: $deviceId)
+  }
+`;
+
+export const SET_PASSWORD = gql`
+  mutation SetPassword($input: SetPasswordInput!) {
+    setPassword(input: $input) {
+      user {
+        id
+        hasPassword
+      }
+      userErrors {
+        field
+        code
+      }
+    }
+  }
+`;
