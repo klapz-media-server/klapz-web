@@ -1,205 +1,205 @@
-# Klapz — client web
+# Klapz — web client
 
-Client web (React 19 + Vite 8 + Apollo Client 4) pour le media server **Klapz**, dans l'esprit de watch.plex.tv / Plex Web : barre de navigation en pastilles, tags de genres, sliders horizontaux, pages film et série avec backdrop.
+Web client (React 19 + Vite 8 + Apollo Client 4) for the **Klapz** media server, in the spirit of watch.plex.tv / Plex Web: pill navigation bar, genre tags, horizontal sliders, movie and show pages with a backdrop.
 
-## Démarrage
+## Getting started
 
 ```bash
 npm install
 npm run dev        # http://localhost:5180
 ```
 
-Le serveur de dev proxifie `/graphql` vers `http://127.0.0.1:32500` (variable `API_URL` pour changer).
+The dev server proxies `/graphql` to `http://127.0.0.1:32500` (set `API_URL` to change it).
 
-## URL
+## URLs
 
-Toutes les URL sont construites dans `src/utils/routes.js`. Un élément a l'URL `/<type>/<id>/<slug>`, l'id tel quel (`=` compris) :
+Every URL is built in `src/utils/routes.js`. An item's URL is `/<type>/<id>/<slug>`, with the id as it is (`=` included):
 
 - `/movie/SXRlbTo1NzY5NDc=/les-croods`
-- `/show/SXRlbTo1NzcxOTQ=/solo-leveling`, une saison : `/show/<id>/solo-leveling/<idSaison>/solo-leveling-s02`
-- `/play/<id>/<slug>` (`?t=<ms>` pour reprendre)
+- `/show/SXRlbTo1NzcxOTQ=/solo-leveling`, a season: `/show/<id>/solo-leveling/<seasonId>/solo-leveling-s02`
+- `/play/<id>/<slug>` (`?t=<ms>` to resume)
 
-Le slug vient de l'API. C'est un nom, pas une identité : les pages chargent par id, et `useCanonicalPath` réécrit l'adresse
-(sans nouvelle entrée d'historique) quand le slug manque ou ne correspond plus, ce qui garde valides les anciens liens
-`/movie/<id>` et `/show/<id>?season=<id>`. Dans les query strings aussi, le `=` des ids reste lisible (`?tag=VGFnOjEyMg==`).
+The slug comes from the API. It is a name, not an identity: pages load by id, and `useCanonicalPath` rewrites the address
+(without a new history entry) when the slug is missing or out of date, which keeps old `/movie/<id>` and
+`/show/<id>?season=<id>` links working. In query strings too, the `=` of ids stays readable (`?tag=VGFnOjEyMg==`).
 
-## Affiches et backdrops
+## Posters and backdrops
 
-L'API GraphQL n'expose pas encore d'images. Le plugin Vite `server/artworkPlugin.js` sert `/artwork?guid=plex://…&type=poster|background|logo|thumb` :
-il résout le guid via le provider de métadonnées Plex, puis redirige vers le redimensionneur `images.plex.tv`.
-Le token plex.tv reste côté serveur : il vient de `PLEX_TOKEN` (`.env.local`), sinon de la clé de registre du Plex Media Server local sous Windows.
-Sans token, ou pour les éléments `local://`, l'UI affiche un placeholder généré.
+The GraphQL API exposes no images yet. The Vite plugin `server/artworkPlugin.js` serves `/artwork?guid=plex://…&type=poster|background|logo|thumb`:
+it resolves the guid through Plex's metadata provider, then redirects to the `images.plex.tv` resizer.
+The plex.tv token stays on the server: it comes from `PLEX_TOKEN` (`.env.local`), or else from the local Plex Media Server's registry key on Windows.
+Without a token, or for `local://` items, the UI shows a generated placeholder.
 
-## Lecteur (Shaka Player)
+## Player (Shaka Player)
 
-« Lire » ouvre `/play/:id`, un lecteur plein écran sur Shaka Player 5 avec une interface maison (pas l'UI Shaka) :
-barre haute (retour, titre), barre de progression avec survol et glisser, ±10 s / +30 s, volume, panneau audio et sous-titres,
-qualité (Auto/ABR ou forcée), vitesse, infos de lecture, image dans l'image, plein écran, masquage automatique après 3 s.
-Un clic sur l'image met en pause / relance, un double-clic passe en plein écran.
+"Play" opens `/play/:id`, a full-screen player on Shaka Player 5 with a custom interface (not the Shaka UI):
+top bar (back, title), seek bar with hover and drag, ±10 s / +30 s, volume, audio and subtitles panel,
+quality (Auto/ABR or fixed), speed, playback info, picture-in-picture, full screen, controls hidden after 3 s.
+A click on the picture pauses / resumes, a double click toggles full screen.
 
-### Lecture réelle (`startStream`)
+### Real playback (`startStream`)
 
-`components/StreamPlayer` lit le premier fichier de l'élément :
+`components/StreamPlayer` plays the item's first file:
 
-- **Décision côté client** (`utils/capabilities.js`) : `directPlay` si le navigateur lit le conteneur et les codecs tels quels
-  (MP4/WebM, piste audio par défaut, sans sous-titres) ; sinon DASH, avec `convertAudio` si l'audio n'est pas décodable
-  (AC3, DTS…). Un Direct Play refusé par le navigateur bascule automatiquement en Direct Stream.
-- **Adaptatif côté client** (`quality: CLIENT_ADAPTIVE`) : par défaut dès que le fichier ne se lit pas tel quel, et pour une
-  vidéo que le navigateur ne décode pas (HEVC…). Le manifeste liste la copie de la vidéo, avec son vrai codec, puis chaque
-  encodage ; Shaka choisit selon le débit et écarte de lui-même une copie qu'il ne peut pas décoder. Le serveur n'adapte rien.
-- **Pistes et qualité** viennent du fichier (GraphQL) : audio, sous-titres (texte → ASS servi à côté du flux, image → incrustés),
-  qualité *Originale* (Direct Play, ou vidéo copiée), *Auto* ou plafond de débit (`maxVideoBitrate`). En *Auto*, le menu liste
-  sous « Auto (actuellement 720p) » les qualités du manifeste : en choisir une la fixe dans le lecteur, sans relancer le flux, et
-  « Auto » rend la main à l'ABR. Les autres changements relancent le flux à la position courante ; l'ancien est arrêté
-  (`stopStream`).
-- **Suivi** : `reportPlayback` (prolonge la session, qui expire après 5 min) et `reportViewing` (position de reprise, vu/non vu)
-  toutes les 10 s et à chaque lecture / pause ; en sortie (y compris fermeture d'onglet, via `fetch keepalive`) :
-  dernière position, `STOPPED`, `stopStream`.
-- **Reprise** : `/play/:id?t=<ms>` ; « Reprendre » et les épisodes en cours y passent leur position. Une série lit son premier épisode non vu.
-- Le badge et l'onglet *Infos* affichent la décision du serveur (`delivery`, `videoDecision`, `audioDecision`).
-  L'API ne donne pas encore la vitesse de transcodage (`decisionFromStream` lira `transcodeSpeed` quand il existera).
-- Le proxy Vite transmet `/streams` (manifestes, segments, fichiers, sous-titres) au serveur.
+- **Client-side decision** (`utils/capabilities.js`): `directPlay` when the browser reads the container and codecs as they
+  are (MP4/WebM, default audio track, no subtitles); otherwise DASH, with `convertAudio` when the audio cannot be decoded
+  (AC3, DTS…). A Direct Play the browser refuses falls back to Direct Stream on its own.
+- **Client-side adaptive** (`quality: CLIENT_ADAPTIVE`): the default whenever the file cannot be played as it is, and for a
+  video the browser cannot decode (HEVC…). The manifest lists the copied video, with its real codec, then each encoding;
+  Shaka picks by bandwidth and leaves out a copy it cannot decode by itself. The server adapts nothing.
+- **Tracks and quality** come from the file (GraphQL): audio, subtitles (text → ASS served beside the stream, image →
+  burned in), *Original* quality (Direct Play, or copied video), *Auto*, or a bitrate cap (`maxVideoBitrate`). In *Auto*,
+  the menu lists the manifest's qualities under "Auto (currently 720p)": picking one pins it in the player without
+  restarting the stream, and "Auto" hands control back to ABR. Other changes restart the stream at the current position;
+  the old one is stopped (`stopStream`).
+- **Reporting**: `reportPlayback` (extends the session, which expires after 5 min) and `reportViewing` (resume position,
+  watched/unwatched) every 10 s and on each play / pause; on exit (tab close included, through `fetch keepalive`): last
+  position, `STOPPED`, `stopStream`.
+- **Resume**: `/play/:id?t=<ms>`; "Resume" and in-progress episodes pass their position. A show plays its first unwatched episode.
+- The badge and the *Info* tab show the server's decision (`delivery`, `videoDecision`, `audioDecision`).
+  The API does not give the transcoding speed yet (`decisionFromStream` will read `transcodeSpeed` once it exists).
+- The Vite proxy forwards `/streams` (manifests, segments, files, subtitles) to the server.
 
-### Flux de test
+### Test streams
 
-`?src=sintel|angel-one|bbb|<url d'un .mpd>` (ou `VITE_TEST_MPD`) joue un manifeste de test à la place
-(`src/utils/streams.js`), avec la décision simulée `?decision=play|stream|transcode|slow&speed=2.3`.
+`?src=sintel|angel-one|bbb|<url of a .mpd>` (or `VITE_TEST_MPD`) plays a test manifest instead
+(`src/utils/streams.js`), with a simulated decision `?decision=play|stream|transcode|slow&speed=2.3`.
 
-Raccourcis : `Espace`/`k` lecture-pause, `←` −10 s, `→`/`l` +30 s, `↑`/`↓` volume, `m` muet, `c` sous-titres, `f` plein écran, `p` image dans l'image, `i` infos de lecture.
+Shortcuts: `Space`/`k` play-pause, `←` −10 s, `→`/`l` +30 s, `↑`/`↓` volume, `m` mute, `c` subtitles, `f` full screen, `p` picture-in-picture, `i` playback info.
 
-Code : `hooks/useStreamSession.js` (startStream / stopStream), `hooks/useServerTrackOptions.js`, `hooks/useShakaPlayer.js` (instance Shaka), `hooks/useMediaState.js` (état de la vidéo),
-`components/StreamPlayer` (lecture réelle), `components/VideoPlayer` (interface) + `SeekBar`, `VolumeControl`, `PlayerSettings`, `PlaybackInfo`, `StreamBadge`, `PlayerIconButton`, `PlayerFeedback`.
+Code: `hooks/useStreamSession.js` (startStream / stopStream), `hooks/useServerTrackOptions.js`, `hooks/useShakaPlayer.js` (Shaka instance), `hooks/useMediaState.js` (video state),
+`components/StreamPlayer` (real playback), `components/VideoPlayer` (interface) + `SeekBar`, `VolumeControl`, `PlayerSettings`, `PlaybackInfo`, `StreamBadge`, `PlayerIconButton`, `PlayerFeedback`.
 
-## Compte, réglages et administration
+## Account, settings and administration
 
-- **Tout passe par la connexion** (`components/SessionGate`) : sans session, l'app ne montre que `/sign-in` et
-  `/sign-up` ; toute autre adresse renvoie vers `/sign-in?next=…`, puis revient à la page demandée. `next` n'est suivi
-  que s'il désigne une page de l'app (`safeNext` dans `utils/routes.js` : ni `//ailleurs`, ni `https://…`, ni les pages
-  de connexion elles-mêmes). Il n'y a ni mode anonyme ni réseau de confiance : chaque requête est celle d'un utilisateur.
-- **Connexion** (`pages/AuthPage`) : nom d'utilisateur **ou** e-mail, et mot de passe. Les refus `INVALID_CREDENTIALS`
-  (même réponse pour un compte inconnu et un mauvais mot de passe), `INACTIVE` et `TOO_MANY_ATTEMPTS` (cinq échecs en
-  quinze minutes) ont chacun leur message. Le serveur répond par un cookie de session (JWT, `HttpOnly; SameSite=Lax;
-  Secure`) : l'app n'a aucun token à garder, Apollo envoie le cookie (`credentials: 'same-origin'`, d'où le proxy Vite
-  sur la même origine).
-- **Inscription** : nom d'utilisateur (3 à 32 caractères parmi `a-z 0-9 . _ -`, en minuscules), e-mail facultatif,
-  mot de passe (8 à 256 caractères). Le compte reste **inactif** jusqu'à ce qu'un propriétaire l'active dans `/admin`.
-- **Session expirée** : `/graphql` répond alors comme à personne. À chaque changement de page, quand une requête GraphQL échoue, qu'un flux répond
-  `401` ou que l'onglet redevient visible, l'app redemande `viewer` (`checkSession` dans `apollo/client.js`, au plus
-  toutes les 5 s) ; sans utilisateur, `SessionGate` renvoie vers la connexion. Désactiver un utilisateur coupe ses
-  sessions à la requête suivante. `hooks/useViewer.js` porte `viewer`, `user`, `owner`, `signIn`, `signUp`, `signOut`.
-- **Dates** : l'API envoie des `DateTime` RFC 3339 en UTC (`2024-05-01T12:34:56Z`), lus par `parseDateTime` /
-  `formatDate` (`utils/format.js`). `releasedOn` est un jour à minuit UTC : affiché en UTC (`formatDay`), édité comme
-  `2024-05-01` et renvoyé en `2024-05-01T00:00:00Z` (`dayOf` / `dateTimeOfDay`).
-- Côté serveur : le compte intégré `admin` prend le mot de passe `OPENPLEX_ADMIN_PASSWORD` (sinon, à sa création, le serveur en tire un
-  et l'affiche une fois sur sa sortie standard) ; `OPENPLEX_SESSION_SECRET` (32 octets au moins) garde les sessions valides d'un redémarrage à l'autre ;
-  `OPENPLEX_INSECURE_COOKIES=1` retire `Secure` pour un serveur servi en HTTP simple ailleurs qu'en localhost.
-- **`/settings/account`** : qui est connecté (nom d'utilisateur, e-mail, rôle), ses bibliothèques, déconnexion.
-- **`/settings/plex`** : l'utilisateur appaire lui-même son serveur à son compte plex.tv (code de plex.tv/claim + adresse),
-  change l'adresse ou dissocie.
-- **`/settings/preferences`** : langue de l'interface.
-- **`/admin`** (rôle `OWNER`) : créer un utilisateur (nom d'utilisateur, e-mail facultatif), l'activer / le désactiver
-  (ceux en attente en tête), le supprimer, lui donner ou retirer le rôle de propriétaire, son accès à chaque bibliothèque
-  (aucun, lecteur, admin, ou tout d'un coup), activer Plex (émet le token, affiché une seule fois), nouveau token,
-  désactiver. Les refus du serveur (`userErrors`) sont affichés. Le compte intégré `admin` (`builtIn`) est marqué comme
-  tel : le rétrograder, le désactiver ou le supprimer est proposé désactivé.
-  En tête, **En cours de lecture** (`components/NowPlaying`) : les sessions de lecture actives (`playbackSessions`,
-  toutes celles du serveur pour un propriétaire), redemandées toutes les 5 s quand l'onglet est visible : titre, lecteur,
-  état et position (qui avance entre deux relevés), et pour la vidéo et l'audio la source → lecture directe, flux en direct
-  ou transcodage (résolution et débit de sortie).
+- **Everything requires signing in** (`components/SessionGate`): without a session, the app shows only `/sign-in` and
+  `/sign-up`; any other address redirects to `/sign-in?next=…`, then comes back to the requested page. `next` is only
+  followed when it names a page of the app (`safeNext` in `utils/routes.js`: no `//elsewhere`, no `https://…`, not the
+  sign-in pages themselves). There is no anonymous mode and no trusted network: every request is a user's.
+- **Sign-in** (`pages/AuthPage`): username **or** e-mail, and password. The refusals `INVALID_CREDENTIALS` (the same
+  answer for an unknown account and a wrong password), `INACTIVE` and `TOO_MANY_ATTEMPTS` (five failures in fifteen
+  minutes) each have their own message. The server answers with a session cookie (JWT, `HttpOnly; SameSite=Lax;
+  Secure`): the app keeps no token, Apollo sends the cookie (`credentials: 'same-origin'`, hence the Vite proxy on the
+  same origin).
+- **Sign-up**: username (3 to 32 characters among `a-z 0-9 . _ -`, lowercase), optional e-mail, password (8 to 256
+  characters). The account stays **inactive** until an owner activates it in `/admin`.
+- **Expired session**: `/graphql` then answers as it does to nobody. On each page change, when a GraphQL request fails,
+  when a stream answers `401` or when the tab becomes visible again, the app asks for `viewer` again (`checkSession` in
+  `apollo/client.js`, at most every 5 s); with no user, `SessionGate` redirects to sign-in. Deactivating a user ends their
+  sessions on the next request. `hooks/useViewer.js` provides `viewer`, `user`, `owner`, `signIn`, `signUp`, `signOut`.
+- **Dates**: the API sends RFC 3339 `DateTime`s in UTC (`2024-05-01T12:34:56Z`), read by `parseDateTime` / `formatDate`
+  (`utils/format.js`). `releasedOn` is a day at midnight UTC: shown in UTC (`formatDay`), edited as `2024-05-01` and sent
+  back as `2024-05-01T00:00:00Z` (`dayOf` / `dateTimeOfDay`).
+- Server side: the built-in `admin` account takes the password `OPENPLEX_ADMIN_PASSWORD` (otherwise, when it is created,
+  the server generates one and prints it once on its standard output); `OPENPLEX_SESSION_SECRET` (at least 32 bytes)
+  keeps sessions valid across restarts; `OPENPLEX_INSECURE_COOKIES=1` drops `Secure` for a server served over plain HTTP
+  elsewhere than on localhost.
+- **`/settings/account`**: who is signed in (username, e-mail, role), their libraries, sign-out.
+- **`/settings/plex`**: users pair their server with their plex.tv account themselves (code from plex.tv/claim +
+  address), change the address or unpair.
+- **`/settings/preferences`**: interface language.
+- **`/admin`** (`OWNER` role): create a user (username, optional e-mail), activate / deactivate them (pending ones first),
+  delete them, grant or remove the owner role, their access to each library (none, reader, admin, or all at once),
+  enable Plex (issues the token, shown only once), new token, disable. The server's refusals (`userErrors`) are shown. The
+  built-in `admin` account (`builtIn`) is marked as such: demoting, deactivating or deleting it is offered disabled.
+  At the top, **Now playing** (`components/NowPlaying`): the active playback sessions (`playbackSessions`, every session
+  on the server for an owner), asked again every 5 s while the tab is visible: title, player, state and position (which
+  moves between two polls), and for video and audio the source → direct play, direct stream or transcode (output
+  resolution and bitrate).
 
-Le menu du compte, en haut à droite, mène aux réglages, à l'administration (propriétaire), à la déconnexion et au choix de la langue.
+The account menu, at the top right, leads to settings, administration (owner), sign-out and the language choice.
 
-## Édition des films, séries et épisodes
+## Editing movies, shows and episodes
 
-- Bouton **Modifier** sur la page d'un film ou d'une série, crayon sur chaque épisode (`components/ItemEditor`).
-  Affiché aux propriétaires du serveur et aux utilisateurs **ADMIN** de la bibliothèque (`hooks/useCanEdit.js`, d'après
-  `viewer`). Le serveur reste juge : il refuse ce que l'appelant ne peut pas modifier.
-- Champs selon le type, comme les entrées de l'API : titre, titre de tri, titre original, accroche (film, série),
-  résumé, studio (film, série), classification, date, année, note des critiques (film), note du public.
-- **Verrous** : chaque champ a son cadenas (`lock` / `unlock` de la mutation) ; modifier un champ le verrouille, comme
-  Plex Web, sauf à le déverrouiller à la main. Un champ vidé est effacé. Seuls les champs changés sont envoyés ; rien de
-  changé, rien d'envoyé. Le titre de tri suit un nouveau titre s'il n'est pas verrouillé.
-- Les mutations renvoient l'élément entier : le cache Apollo met la page à jour sans recharger, et l'URL suit le
-  nouveau slug.
+- **Edit** button on a movie's or a show's page, a pencil on each episode (`components/ItemEditor`).
+  Shown to the server's owners and to the library's **ADMIN** users (`hooks/useCanEdit.js`, from `viewer`). The server
+  has the last word: it refuses what the caller cannot change.
+- Fields depend on the type, as the API's inputs do: title, sort title, original title, tagline (movie, show), summary,
+  studio (movie, show), content rating, date, year, critic rating (movie), audience rating.
+- **Locks**: each field has its padlock (the mutation's `lock` / `unlock`); editing a field locks it, as in Plex Web,
+  unless it is unlocked by hand. A cleared field is erased. Only changed fields are sent; nothing changed, nothing sent.
+  The sort title follows a new title unless it is locked.
+- Mutations return the whole item: the Apollo cache updates the page without reloading, and the URL follows the new slug.
 
-## Liste complète d'une bibliothèque
+## Full library listing
 
-- **Grille virtuelle** (`components/VirtualPosterGrid`) : la page a d'emblée la hauteur de toute la liste (d'après
-  `stats.itemCount`), mais seules les rangées à l'écran, plus deux de marge, existent dans le DOM — et donc seules leurs
-  affiches se chargent. Les colonnes suivent `--poster-w` et `--card-gap`, comme la grille ordinaire.
-- **Pages à la position** (`hooks/useOffsetPages.js`) : la liste est lue par pages de 60 avec `items(offset:)`, pour les
-  rangées visibles plus une, et seulement quand le défilement s'arrête (160 ms de repos) : rien n'est demandé pendant un
-  défilement continu, un grand saut ne charge que la page d'arrivée. Une page encore en route quand la vue la quitte est
-  annulée (requête HTTP interrompue). Les pages qui arrivent ensemble sont affichées en un seul rendu, et les cartes déjà
-  affichées ne se re-rendent pas (`PosterCard` mémoïsé). Chaque page est une requête observée, donc un élément marqué vu
-  se met à jour ; les pages chargées loin de la vue cessent d'être suivies.
-- **Barre A–Z** (`components/JumpBar`), seulement en tri par titre, croissant ou décroissant (barre inversée) : d'après
-  `stats.firstCharacters`, `#` puis A–Z, les autres lettres (Œ, grec, cyrillique…) réunies sous `…`. Un clic glisse
-  jusqu'à la première rangée de la lettre (420 ms ; de loin, seul le dernier écran et demi est animé, et rien n'est
-  chargé en route ; molette, toucher ou clavier l'arrêtent ; immédiat avec `prefers-reduced-motion`). La lettre en cours
-  est surlignée, et au doigt on glisse le long de la barre.
-- **Retour** : la position est retenue par entrée d'historique (`utils/scrollMemory.js`) ; revenir d'un film retrouve
-  l'endroit de la liste.
+- **Virtual grid** (`components/VirtualPosterGrid`): the page has the height of the whole listing from the start (from
+  `stats.itemCount`), but only the rows on screen, plus two of margin, exist in the DOM — so only their posters load.
+  Columns follow `--poster-w` and `--card-gap`, like the regular grid.
+- **Pages by position** (`hooks/useOffsetPages.js`): the listing is read in pages of 60 with `items(offset:)`, for the
+  visible rows plus one, and only once scrolling stops (160 ms at rest): nothing is requested during a continuous scroll,
+  and a long jump loads only the page it lands on. A page still loading when the view leaves it is cancelled (HTTP
+  request aborted). Pages arriving together are shown in a single render, and cards already shown do not re-render
+  (`PosterCard` is memoized). Each page is a watched query, so an item marked watched updates; pages loaded far from the
+  view stop being watched.
+- **A–Z bar** (`components/JumpBar`), only when sorted by title, ascending or descending (reversed bar): from
+  `stats.firstCharacters`, `#` then A–Z, the other letters (Œ, Greek, Cyrillic…) grouped under `…`. A click glides to
+  the letter's first row (420 ms; from far away only the last screen and a half is animated, and nothing is loaded on the
+  way; a wheel, a touch or a key stops it; instant with `prefers-reduced-motion`). The current letter is highlighted, and
+  on touch screens a finger slides along the bar.
+- **Back**: the position is kept per history entry (`utils/scrollMemory.js`); coming back from a movie finds the same
+  place in the listing.
 
-## Traductions (i18next)
+## Translations (i18next)
 
-Les clés sont le texte anglais lui-même, en clés plates (pas de séparateur `.` ni `:`) :
+Keys are the English text itself, as flat keys (no `.` or `:` separator):
 
 ```jsx
 const { t } = useTranslation();
 t('Recently added in {{library}}', { library: lib.title });
-t('{{count}} season', { count });          // pluriel → clés _one / _other
+t('{{count}} season', { count });          // plural → keys _one / _other
 <Trans i18nKey="Results for <q>“{{query}}”</q>" values={{ query }} components={{ q: <span /> }} />
 ```
 
-Hors composant (utils), utiliser `i18n.t(...)` depuis `src/i18n`.
+Outside components (utils), use `i18n.t(...)` from `src/i18n`.
 
 ```bash
-npm run i18n:extract   # scanne t() / <Trans> → src/locales/{en,fr}/translation.json
-npm run i18n:status    # clés manquantes en français
-npm run i18n:lint      # interpolations incohérentes, etc.
+npm run i18n:extract   # scans t() / <Trans> → src/locales/{en,fr}/translation.json
+npm run i18n:status    # keys missing in French
+npm run i18n:lint      # inconsistent interpolations, etc.
 ```
 
-- `en` est généré (clé = valeur) ; seules les formes `_other` des pluriels sont à compléter à la main.
-- Une clé absente de `fr` n'y est pas ajoutée vide : l'UI retombe sur l'anglais, et `i18n:status` la signale.
-- Les clés qui ne sont plus utilisées dans le code sont supprimées à l'extraction ; les traductions existantes sont conservées.
-- Config de l'extracteur : `i18next.config.js`. Langue détectée via `localStorage` puis le navigateur, changeable dans la barre du haut.
+- `en` is generated (key = value); only the `_other` plural forms are filled in by hand.
+- A key missing from `fr` is not added empty: the UI falls back to English, and `i18n:status` reports it.
+- Keys no longer used in the code are removed on extraction; existing translations are kept.
+- Extractor config: `i18next.config.js`. The language is detected from `localStorage`, then the browser, and can be
+  changed in the top bar.
 
-## Tests et intégration continue
+## Tests and continuous integration
 
 ```bash
-npm test               # Vitest, une fois (npm run test:watch pour relancer à chaque modification)
+npm test               # Vitest, once (npm run test:watch to rerun on every change)
 ```
 
-Les tests (`src/**/*.test.js`, environnement jsdom) couvrent les fonctions pures : URLs (`safeNext` compris),
-formats, décision de lecture, décalages de la barre de lettres, et la complétude de la traduction française.
+The tests (`src/**/*.test.js`, jsdom environment) cover the pure functions: URLs (`safeNext` included), formatting,
+playback decisions, the letter bar's offsets, and the completeness of the French translation.
 
-`.github/workflows/ci.yml`, à chaque push et pull request :
+`.github/workflows/ci.yml`, on every push and pull request:
 
-1. **Tests** : `npm ci` puis `npm test`.
-2. **Build** : `npm run build`, puis `dist/` zippé en `klapz-web-<version>.zip`, joint aux artefacts du run.
-3. **Release**, sur la branche par défaut seulement : une release GitHub `v<version>` avec le zip et les notes
-   générées depuis les commits.
+1. **Tests**: `npm ci` then `npm test`.
+2. **Build**: `npm run build`, then `dist/` zipped as `klapz-web-<version>.zip`, attached to the run's artifacts.
+3. **Release**, on the default branch only: a GitHub release `v<version>` with the zip and notes generated from the
+   commits.
 
-Les versions sont les tags `vX.Y.Z`. Chaque push sur la branche par défaut publie le dernier tag avec le patch
-augmenté (`v0.1.4` → `v0.1.5`) ; la première release prend la version de `package.json`. Lancer le workflow à la main
-(*Actions → CI → Run workflow*) permet d'augmenter le mineur ou le majeur. Ailleurs, le zip porte une version de
-développement (`0.1.5-dev.g1a2b3c4`) et rien n'est publié. La version est écrite dans `package.json` au moment du
-build seulement : rien n'est recommité.
+Versions are `vX.Y.Z` tags. Each push to the default branch releases the last tag with its patch number raised
+(`v0.1.4` → `v0.1.5`); the first release takes `package.json`'s version. Running the workflow by hand
+(*Actions → CI → Run workflow*) raises the minor or the major instead. Elsewhere, the zip carries a development version
+(`0.1.5-dev.g1a2b3c4`) and nothing is published. The version is written into `package.json` at build time only: nothing
+is committed back.
 
 ## Structure
 
 ```
 src/
-  apollo/        client Apollo (possibleTypes, pagination relay)
-  graphql/       fragments, requêtes, mutations
-  components/    un dossier par composant : Composant.jsx + Composant.module.css
-  pages/         un dossier par page (Home, Library, Movie, Show, Search, NotFound)
+  apollo/        Apollo client (possibleTypes, relay pagination)
+  graphql/       fragments, queries, mutations
+  components/    one folder per component: Component.jsx + Component.module.css
+  pages/         one folder per page (Home, Library, Movie, Show, Search, NotFound)
   hooks/         useInView, useWatchToggle, usePageTitle
-  utils/         formatage, routes, artwork, lecteur
+  utils/         formatting, routes, artwork, player
 scripts/
-  validate-queries.mjs   valide toutes les requêtes contre le schéma live
-  run-query.mjs          exécute une requête nommée
+  validate-queries.mjs   validates every query against the live schema
+  run-query.mjs          runs a named query
 ```
 
 ```bash

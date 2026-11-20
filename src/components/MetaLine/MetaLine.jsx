@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import styles from './MetaLine.module.css';
 
-/** `[U] 2013 · 1 h 39 · Comédie, Animation` */
+/** `[U] 2013 · 1 h 39 · Comedy, Animation` */
 export default function MetaLine({ badge, items }) {
   const parts = (items ?? []).filter(Boolean);
   if (!badge && !parts.length) return null;
