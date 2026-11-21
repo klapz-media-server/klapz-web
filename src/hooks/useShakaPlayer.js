@@ -148,7 +148,8 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
     const hasDeliveries = () => deliveries.size > 0 || hlsDeliveries.size > 0;
 
     player.configure({
-      streaming: { bufferingGoal: 30, rebufferingGoal: 2 },
+      // A segment request is tried up to 5 times (Shaka's default is 2) before playback fails.
+      streaming: { bufferingGoal: 30, rebufferingGoal: 2, retryParameters: { maxAttempts: 5 } },
       abr: { enabled: true },
       manifest: {
         dash: {
