@@ -42,7 +42,11 @@ export function useShakaTrackOptions(shakaState) {
     ...tracks.video.map((track) => ({
       key: track.quality,
       label: track.quality,
-      detail: [track.width && track.height ? `${track.width}×${track.height}` : null, formatBitrate(Math.round((track.bandwidth ?? 0) / 1000))]
+      detail: [
+        track.width && track.height ? `${track.width}×${track.height}` : null,
+        formatBitrate(Math.round((track.bandwidth ?? 0) / 1000)),
+        { remux: t('Remux'), transcode: t('Transcode') }[track.delivery] ?? null,
+      ]
         .filter(Boolean)
         .join(' · '),
       selected: !abr && track.quality === activeQuality,

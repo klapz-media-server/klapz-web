@@ -3,6 +3,7 @@ import { useApolloClient } from '@apollo/client/react';
 import { START_STREAM, STOP_STREAM } from '../graphql/mutations';
 import { canDecodeAudio, canDecodeVideo, directPlayMime, isImageSubtitle } from '../utils/capabilities';
 import { sendBeacon } from '../utils/gqlBeacon';
+import { copyableVideoCodecs, manifestMime } from '../utils/streamProtocol';
 
 const CLIENT_IDENTIFIER = (() => {
   try {
@@ -21,9 +22,10 @@ let counter = 0;
 /**
  * The startStream input for a request, and what the browser will play.
  *
- * `request` is `{ audioId, subtitleId, quality, noDirectPlay, positionMs }`, where
+ * `request` is `{ audioId, subtitleId, quality, noDirectPlay, positionMs, protocol }`, where
  * `quality` is 'original' (copy the video when possible), 'auto' (every quality
- * announced, the player choosing among them) or a video bitrate cap in bits per second.
+ * announced, the player choosing among them) or a video bitrate cap in bits per second,
+ * and `protocol` is 'DASH' (the default) or 'HLS'.
  */
 export function buildStreamInput({ file, version, request, playbackId, key }) {
   const streams = file.streams ?? [];
@@ -37,23 +39,36 @@ export function buildStreamInput({ file, version, request, playbackId, key }) {
       ? directPlayMime(version, audio?.codec)
       : null;
 
+  const protocol = request.protocol === 'HLS' ? 'HLS' : 'DASH';
+  const copyable = copyableVideoCodecs(protocol).filter(canDecodeVideo);
+  // Text subtitles come beside a DASH stream only: over HLS they are burned too.
+  const subtitles = !subtitle ? 'NONE' : isImageSubtitle(subtitle.codec) || protocol === 'HLS' ? 'BURN' : 'TEXT';
+
   return {
     mime,
+    // What Shaka loads the stream's address as: the file's type, or the manifest's.
+    loadMime: mime ?? manifestMime(protocol),
     input: {
       file: file.id,
       directPlay: !!mime,
-      protocol: 'DASH',
+      protocol,
       audioTrack: audio?.id ?? null,
       subtitleTrack: subtitle?.id ?? null,
-      subtitles: subtitle ? (isImageSubtitle(subtitle.codec) ? 'BURN' : 'TEXT') : 'NONE',
+      subtitles,
       subtitleScale: 1,
       maxVideoBitrate: typeof request.quality === 'number' ? request.quality : null,
       convertAudio: !!audio && !canDecodeAudio(audio.codec),
+      // Sent as they are when the browser decodes them (HEVC in Chrome with a hardware decoder)
+      // and the protocol carries them.
+      videoCodecs: copyable,
       // Adaptive on the client's side, as a browser player does it: the manifest lists the
       // copy of the video (with its real codec) and every encode, and Shaka chooses by the
-      // link. A codec the browser cannot decode goes the same way: Shaka drops the copy and
-      // plays the encodes.
-      quality: request.quality === 'auto' || !canDecodeVideo(version.videoCodec) ? 'CLIENT_ADAPTIVE' : 'FIXED',
+      // link. Video that cannot be copied (a codec the browser cannot decode, or that the
+      // protocol does not carry) goes the same way: the player plays the encodes.
+      quality:
+        request.quality === 'auto' || !copyable.includes(version.videoCodec?.toLowerCase())
+          ? 'CLIENT_ADAPTIVE'
+          : 'FIXED',
       positionMs: Math.max(0, Math.round(request.positionMs ?? 0)),
       key,
       playbackId,
@@ -79,7 +94,7 @@ export function useStreamSession({ file, version, request, playbackId }) {
     let cancelled = false;
     let started = null;
     const key = `${playbackId}-${++counter}`;
-    const { input, mime, subtitle } = buildStreamInput({ file, version, request, playbackId, key });
+    const { input, loadMime, subtitle } = buildStreamInput({ file, version, request, playbackId, key });
     setState((s) => ({ ...s, status: 'starting', error: null }));
 
     const stop = (session) =>
@@ -104,7 +119,7 @@ export function useStreamSession({ file, version, request, playbackId }) {
           status: 'ready',
           stream: payload.stream,
           session: payload.session,
-          mime,
+          mime: loadMime,
           input,
           subtitle,
           startTime: input.positionMs / 1000,

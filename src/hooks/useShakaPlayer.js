@@ -19,7 +19,21 @@ export function qualityName(width = 0, height = 0) {
   return `${height}p`;
 }
 
-function readTracks(player) {
+/**
+ * The tracks to list. `videoDeliveryOf(variant)` gives the server's delivery of a variant's
+ * video ('remux' or 'transcode'); a video track carries its rung's as `delivery`.
+ */
+function readTracks(player, videoDeliveryOf) {
+  const variants = player.getVariantTracks();
+  const deliveryOf = (track) => {
+    const variant = variants.find(
+      (v) =>
+        (v.videoBandwidth === track.bandwidth || v.bandwidth === track.bandwidth) &&
+        v.width === track.width &&
+        v.height === track.height,
+    );
+    return (variant && videoDeliveryOf(variant)) ?? null;
+  };
   // The same language often comes in several codecs: list it once,
   // keeping the active variant when there is one.
   const audio = [];
@@ -33,7 +47,7 @@ function readTracks(player) {
   const video = [];
   for (const track of [...player.getVideoTracks()].sort((a, b) => (b.bandwidth ?? 0) - (a.bandwidth ?? 0))) {
     const quality = qualityName(track.width, track.height);
-    if (!video.some((v) => v.quality === quality)) video.push({ ...track, quality });
+    if (!video.some((v) => v.quality === quality)) video.push({ ...track, quality, delivery: deliveryOf(track) });
   }
   return { audio, video, text: player.getTextTracks() };
 }
@@ -60,6 +74,8 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
   const [tracks, setTracks] = useState(EMPTY_TRACKS);
   const [abr, setAbr] = useState(true);
   const [activeQuality, setActiveQuality] = useState(null);
+  // `{ video, audio }`, each 'remux' or 'transcode', from the manifest; null without the tags.
+  const [activeDelivery, setActiveDelivery] = useState(null);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -80,16 +96,91 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
     if (captionsRef?.current) player.setVideoContainer(captionsRef.current);
     let cancelled = false;
 
+    // The server tags each representation `klapz:delivery="remux"` (the file's own track) or
+    // `"transcode"`, by its id. Playback starts on the video remux when the browser can decode
+    // it, rather than on the encode Shaka's default bandwidth estimate would pick; ABR still
+    // moves down if the link cannot keep up.
+    const deliveries = new Map();
+    let remuxBandwidth = 0;
+    const collectDeliveries = (node) => {
+      const delivery = node.attributes?.['klapz:delivery'];
+      if (node.tagName === 'Representation' && delivery) {
+        deliveries.set(node.attributes.id, delivery);
+        const isVideo = (node.attributes.mimeType ?? node.parent?.attributes?.mimeType ?? '').startsWith('video/');
+        if (isVideo && delivery === 'remux') {
+          remuxBandwidth = Math.max(remuxBandwidth, Number(node.attributes.bandwidth) || 0);
+        }
+      }
+      for (const child of node.children ?? []) if (typeof child === 'object' && child) collectDeliveries(child);
+    };
+
+    // Over HLS the master playlist tags each variant `X-KLAPZ-DELIVERY=REMUX|TRANSCODE`; Shaka
+    // gives a variant the playlist's BANDWIDTH, which keys it here. The tag names the video:
+    // the audio's delivery stays the server's decision.
+    const hlsDeliveries = new Map();
+    const collectHlsDeliveries = (text) => {
+      for (const line of text.split(/\r?\n/)) {
+        if (!line.startsWith('#EXT-X-STREAM-INF:')) continue;
+        const bandwidth = Number(/[:,]BANDWIDTH=(\d+)/.exec(line)?.[1]);
+        const delivery = /[:,]X-KLAPZ-DELIVERY=(\w+)/.exec(line)?.[1]?.toLowerCase();
+        if (!bandwidth || !delivery) continue;
+        hlsDeliveries.set(bandwidth, delivery);
+        if (delivery === 'remux') remuxBandwidth = Math.max(remuxBandwidth, bandwidth);
+      }
+    };
+    player.getNetworkingEngine()?.registerResponseFilter((type, response) => {
+      if (type !== shaka.net.NetworkingEngine.RequestType.MANIFEST) return;
+      let text;
+      try {
+        text = shaka.util.StringUtils.fromUTF8(response.data);
+      } catch {
+        return;
+      }
+      if (!text.startsWith('#EXTM3U') || !text.includes('#EXT-X-STREAM-INF')) return;
+      collectHlsDeliveries(text);
+      if (remuxBandwidth) player.configure('abr.defaultBandwidthEstimate', remuxBandwidth * 1.2);
+    });
+
+    const videoDeliveryOf = (variant) =>
+      deliveries.get(variant.originalVideoId) ?? hlsDeliveries.get(variant.bandwidth) ?? null;
+    const audioDeliveryOf = (variant) => deliveries.get(variant.originalAudioId) ?? null;
+    const hasDeliveries = () => deliveries.size > 0 || hlsDeliveries.size > 0;
+
     player.configure({
       streaming: { bufferingGoal: 30, rebufferingGoal: 2 },
       abr: { enabled: true },
+      manifest: {
+        dash: {
+          manifestPreprocessorTXml: (mpd) => {
+            collectDeliveries(mpd);
+            if (remuxBandwidth) player.configure('abr.defaultBandwidthEstimate', remuxBandwidth * 1.2);
+          },
+        },
+      },
     });
+
+    const isRemuxVideo = (variant) => videoDeliveryOf(variant) === 'remux';
+    const startOnRemux = () => {
+      const variants = player.getVariantTracks();
+      const active = variants.find((t) => t.active);
+      if (active && isRemuxVideo(active)) return;
+      // Same audio as now: only the picture changes rung.
+      const candidates = variants.filter(
+        (t) => isRemuxVideo(t) && (!active || t.originalAudioId === active.originalAudioId),
+      );
+      const best = candidates.sort((a, b) => b.bandwidth - a.bandwidth)[0];
+      if (best) player.selectVariantTrack(best, true);
+    };
 
     const refresh = () => {
       if (cancelled) return;
-      setTracks(readTracks(player));
+      setTracks(readTracks(player, videoDeliveryOf));
       const active = player.getVideoTracks().find((t) => t.active);
       setActiveQuality(active ? qualityName(active.width, active.height) : null);
+      const variant = player.getVariantTracks().find((t) => t.active);
+      setActiveDelivery(
+        variant && hasDeliveries() ? { video: videoDeliveryOf(variant), audio: audioDeliveryOf(variant) } : null,
+      );
     };
     const onError = (event) => {
       if (cancelled) return;
@@ -109,6 +200,7 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
     setError(null);
     setTracks(EMPTY_TRACKS);
     setAbr(true);
+    setActiveDelivery(null);
 
     const { startTime, mimeType, textTrack } = optionsRef.current;
     destroyedRef.current
@@ -120,6 +212,7 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
       .then(() => player.load(src, startTime || null, mimeType || undefined))
       .then(async () => {
         if (cancelled) return;
+        startOnRemux();
         if (textTrack?.url) {
           try {
             const track = await player.addTextTrackAsync(
@@ -198,6 +291,7 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
     tracks,
     abr,
     activeQuality,
+    activeDelivery,
     selectAudio,
     selectText,
     selectQuality,

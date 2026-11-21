@@ -61,7 +61,9 @@ export default function PlaybackInfo({ decision, source, live }) {
       key: 'container',
       label: t('Container'),
       from: source?.container?.toUpperCase() ?? '—',
-      to: 'DASH',
+      to:
+        decision?.protocol ??
+        (decision?.container === 'COPY' ? (source?.container?.toUpperCase() ?? '—') : 'DASH'),
       status: status(decision?.container),
     },
   ];

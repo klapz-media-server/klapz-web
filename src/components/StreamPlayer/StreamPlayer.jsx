@@ -8,6 +8,7 @@ import { directPlayMime } from '../../utils/capabilities';
 import { languageLabel } from '../../utils/format';
 import { sendBeacon } from '../../utils/gqlBeacon';
 import { decisionFromStream } from '../../utils/playback';
+import { getStreamProtocol } from '../../utils/streamProtocol';
 import VideoPlayer from '../VideoPlayer/VideoPlayer';
 
 /**
@@ -35,6 +36,8 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
       quality: directPlayMime(version, audio?.codec) ? 'original' : 'auto',
       noDirectPlay: false,
       positionMs: startMs,
+      // DASH or HLS, as chosen in the settings; read once per playback.
+      protocol: getStreamProtocol(),
     };
   });
 
@@ -107,6 +110,10 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
     [stream?.subtitlesUrl, subtitleStream],
   );
 
+  // Subtitles the server cannot deliver (an image track it cannot burn in yet) must not stop
+  // the film: it plays on without them. A forced track is chosen by default, so this is common.
+  const refusedSubtitle = session.status === 'error' && session.error?.code === 'SUBTITLE_NOT_DELIVERABLE';
+
   const errorMessages = {
     FILE_MISSING: t('This file is not available on this server.'),
     FILE_NOT_FOUND: t('This file no longer exists.'),
@@ -116,12 +123,16 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
     TOO_MANY_STREAMS: t('Too many streams are running on the server.'),
   };
   const error =
-    session.status === 'error'
+    session.status === 'error' && !(refusedSubtitle && request.subtitleId)
       ? {
           title: t('Playback failed'),
           detail: errorMessages[session.error?.code] ?? session.error?.message ?? null,
         }
       : null;
+
+  useEffect(() => {
+    if (refusedSubtitle && request.subtitleId) change({ subtitleId: null });
+  }, [refusedSubtitle, request.subtitleId, change]);
 
   // A file the browser turns down in direct play is streamed instead.
   const onPlayerError = useCallback(() => {

@@ -7,6 +7,7 @@ import { useShakaPlayer } from '../../hooks/useShakaPlayer';
 import { useShakaTrackOptions } from '../../hooks/useShakaTrackOptions';
 import { artworkUrl } from '../../utils/artwork';
 import { formatClock } from '../../utils/format';
+import { withManifestDelivery } from '../../utils/playback';
 import Icon from '../Icon/Icon';
 import PlayerFeedback from '../PlayerFeedback/PlayerFeedback';
 import PlayerIconButton from '../PlayerIconButton/PlayerIconButton';
@@ -62,7 +63,7 @@ export default function VideoPlayer({
   subtitle,
   posterGuid,
   onBack,
-  decision,
+  decision: startDecision,
   source,
   trackOptions,
   preparing = false,
@@ -80,6 +81,7 @@ export default function VideoPlayer({
   const shakaState = useShakaPlayer(videoRef, src, captionsRef, { startTime, mimeType, textTrack });
   const shakaOptions = useShakaTrackOptions(shakaState);
   const options = withPlayerQualities(trackOptions, shakaOptions, shakaState);
+  const decision = withManifestDelivery(startDecision, shakaState.activeDelivery);
   const [fullscreen, toggleFullscreen] = useFullscreen(rootRef);
   const [settingsTab, setSettingsTab] = useState(null);
   const [scrubbing, setScrubbing] = useState(false);
