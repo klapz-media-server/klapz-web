@@ -381,6 +381,7 @@
   "The built-in admin account stays an active owner.": "The built-in admin account stays an active owner.",
   "The file is sent as is: nothing is converted.": "The file is sent as is: nothing is converted.",
   "The language of the interface, kept in this browser. Titles and summaries come in the language of each library.": "The language of the interface, kept in this browser. Titles and summaries come in the language of each library.",
+  "The last scan stopped: {{reason}}": "The last scan stopped: {{reason}}",
   "The library is being scanned. Try again once the scan is over.": "The library is being scanned. Try again once the scan is over.",
   "The password needs between 8 and 256 characters.": "The password needs between 8 and 256 characters.",
   "The password you sign in with, here and in Jellyfin apps.": "The password you sign in with, here and in Jellyfin apps.",

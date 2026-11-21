@@ -697,6 +697,7 @@ export const LIBRARY_SCAN_STATE = gql`
       ... on Library {
         scanning
         scannedAt
+        scanFailure
       }
     }
   }

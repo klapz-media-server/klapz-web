@@ -11,7 +11,7 @@ import styles from './ScanButton.module.css';
  */
 export default function ScanButton({ libraryId, size = 'sm' }) {
   const { t } = useTranslation();
-  const { scanning, scannedAt, busy, start, stop } = useLibraryScan(libraryId);
+  const { scanning, scannedAt, failure: lastFailure, busy, start, stop } = useLibraryScan(libraryId);
   const [failure, setFailure] = useState(null);
 
   const run = async () => {
@@ -47,6 +47,11 @@ export default function ScanButton({ libraryId, size = 'sm' }) {
       {failure && (
         <span className={styles.failure} role="alert">
           {failure}
+        </span>
+      )}
+      {!scanning && !failure && lastFailure && (
+        <span className={styles.failure} role="alert" title={lastFailure}>
+          {t('The last scan stopped: {{reason}}', { reason: lastFailure })}
         </span>
       )}
     </span>

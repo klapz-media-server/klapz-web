@@ -35,6 +35,8 @@ export function useLibraryScan(libraryId) {
   return {
     scanning,
     scannedAt: data?.node?.scannedAt ?? null,
+    /** Why the last scan stopped before its end, for the library's admins; null otherwise. */
+    failure: data?.node?.scanFailure ?? null,
     busy: scanState.loading || cancelState.loading,
     /** Resolves to the refusal's code, or null once the scan started. */
     start: async ({ force = false } = {}) => {

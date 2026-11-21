@@ -381,6 +381,7 @@
   "The built-in admin account stays an active owner.": "Le compte intégré admin reste un propriétaire actif.",
   "The file is sent as is: nothing is converted.": "Le fichier est envoyé tel quel : rien n’est converti.",
   "The language of the interface, kept in this browser. Titles and summaries come in the language of each library.": "La langue de l’interface, gardée dans ce navigateur. Les titres et résumés sont dans la langue de chaque bibliothèque.",
+  "The last scan stopped: {{reason}}": "La dernière analyse s’est arrêtée : {{reason}}",
   "The library is being scanned. Try again once the scan is over.": "La bibliothèque est en cours d’analyse. Réessayez une fois l’analyse terminée.",
   "The password needs between 8 and 256 characters.": "Le mot de passe doit faire entre 8 et 256 caractères.",
   "The password you sign in with, here and in Jellyfin apps.": "Le mot de passe avec lequel vous vous connectez, ici et dans les applications Jellyfin.",

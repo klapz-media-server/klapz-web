@@ -349,6 +349,7 @@ export const SCAN_LIBRARY = gql`
         id
         scanning
         scannedAt
+        scanFailure
       }
       ${LIBRARY_ERRORS}
     }
@@ -394,6 +395,20 @@ export const SET_PASSWORD = gql`
       user {
         id
         hasPassword
+      }
+      userErrors {
+        field
+        code
+      }
+    }
+  }
+`;
+
+export const SIGN_IN_WITH_TICKET = gql`
+  mutation SignInWithTicket($input: SignInWithTicketInput!) {
+    signInWithTicket(input: $input) {
+      user {
+        id
       }
       userErrors {
         field

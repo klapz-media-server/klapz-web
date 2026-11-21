@@ -41,3 +41,10 @@
     animation: none;
   }
 }
+
+.failure[title] {
+  flex-basis: 100%;
+  max-width: 560px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}

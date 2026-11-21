@@ -136,6 +136,8 @@ The account menu, at the top right, leads to settings, administration (owner), s
   changed and removed files and has `klapz-scanner` analyse the new ones; while it runs the button stops it, and its
   state is asked again every 2 s. When it ends, every query on screen is fetched again, so new items appear without a
   reload.
+  When the last scan stopped before its end — the scanner's ffmpeg has no ffprobe of its own, say — the button says why
+  (`Library.scanFailure`, for the library's admins).
 - **Deleting** (`deleteLibrary`, owners only): a confirmation, then the library, its items, collections and access
   rights are removed and its playbacks stop; files stay on disk. The library leaves the Apollo cache, the lists of
   libraries are refetched, and its page sends back home.
