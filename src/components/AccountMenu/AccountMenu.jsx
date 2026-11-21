@@ -5,7 +5,7 @@ import { LANGUAGES } from '../../i18n';
 import Dropdown, { DropdownHeading, DropdownItem } from '../Dropdown/Dropdown';
 import styles from './AccountMenu.module.css';
 
-/** The account button of the top bar: settings, administration, language. */
+/** The account button of the top bar: settings, language. */
 export default function AccountMenu() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -32,7 +32,6 @@ export default function AccountMenu() {
             </span>
           </div>
           <DropdownItem onClick={() => go(close, '/settings')}>{t('Settings')}</DropdownItem>
-          {owner && <DropdownItem onClick={() => go(close, '/admin')}>{t('Administration')}</DropdownItem>}
           <DropdownItem
             onClick={async () => {
               close();

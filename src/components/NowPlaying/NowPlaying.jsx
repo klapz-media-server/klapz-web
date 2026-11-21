@@ -150,7 +150,7 @@ export default function NowPlaying() {
   const now = useNow(!!sessions?.some((s) => s.state === 'PLAYING'));
 
   return (
-    <section className={styles.section} aria-labelledby="now-playing">
+    <section aria-labelledby="now-playing">
       <h2 id="now-playing" className={styles.heading}>
         {t('Now playing')}
         {sessions?.length > 0 && <span className={styles.count}>{sessions.length}</span>}

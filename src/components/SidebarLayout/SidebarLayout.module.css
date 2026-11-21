@@ -60,13 +60,6 @@
   color: var(--color-accent);
 }
 
-.navLink[data-secondary] {
-  margin-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
-  padding-top: 0;
-}
-
 .content {
   min-width: 0;
   display: flex;
@@ -89,9 +82,19 @@
   .navLink {
     flex-shrink: 0;
   }
-  .navLink[data-secondary] {
-    margin-top: 0;
-    border-top: 0;
-    border-radius: var(--radius-md);
-  }
+}
+
+.badge {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 12px;
+  font-weight: 800;
 }

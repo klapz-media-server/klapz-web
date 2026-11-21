@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useMatch, useNavigate } from 'react-router'
 import { useQuery } from '@apollo/client/react';
 import { useTranslation } from 'react-i18next';
 import { LIBRARIES } from '../../graphql/queries';
+import { useViewer } from '../../hooks/useViewer';
 import { libraryPath, readParam } from '../../utils/routes';
 import Dropdown, { DropdownHeading, DropdownItem } from '../Dropdown/Dropdown';
 import AccountMenu from '../AccountMenu/AccountMenu';
@@ -45,6 +46,7 @@ function LibraryMenu({ label, icon, libraries, currentId }) {
 export default function TopBar() {
   const { t } = useTranslation();
   const { data } = useQuery(LIBRARIES);
+  const { owner } = useViewer();
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const libraryMatch = useMatch('/library/:id');
@@ -74,6 +76,12 @@ export default function TopBar() {
         </NavLink>
         <LibraryMenu label={t('Movies')} icon="movie" libraries={movies} currentId={currentId} />
         <LibraryMenu label={t('TV Shows')} icon="tv" libraries={shows} currentId={currentId} />
+        {owner && (
+          <NavLink to="/servers" className={styles.link}>
+            <Icon name="server" size={18} className={styles.linkIcon} />
+            <span className={styles.linkLabel}>{t('Server')}</span>
+          </NavLink>
+        )}
       </nav>
       <div className={styles.end}>
         <AccountMenu />

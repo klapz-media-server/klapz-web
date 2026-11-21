@@ -1,7 +1,6 @@
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import Layout from './components/Layout/Layout';
 import SessionGate from './components/SessionGate/SessionGate';
-import AdminPage from './pages/AdminPage/AdminPage';
 import AuthPage from './pages/AuthPage/AuthPage';
 import HomePage from './pages/HomePage/HomePage';
 import LibraryPage from './pages/LibraryPage/LibraryPage';
@@ -9,6 +8,7 @@ import MoviePage from './pages/MoviePage/MoviePage';
 import NotFoundPage from './pages/NotFoundPage/NotFoundPage';
 import PlayerPage from './pages/PlayerPage/PlayerPage';
 import SearchPage from './pages/SearchPage/SearchPage';
+import ServerPage from './pages/ServerPage/ServerPage';
 import SettingsPage from './pages/SettingsPage/SettingsPage';
 import ShowPage from './pages/ShowPage/ShowPage';
 
@@ -37,7 +37,10 @@ const router = createBrowserRouter([
       { path: 'search', element: <SearchPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'settings/:section', element: <SettingsPage /> },
-      { path: 'admin', element: <AdminPage /> },
+      { path: 'servers', element: <ServerPage /> },
+      { path: 'servers/:section', element: <ServerPage /> },
+      // The former address of the server's administration.
+      { path: 'admin', element: <Navigate to="/servers" replace /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
