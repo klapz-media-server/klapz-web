@@ -482,6 +482,9 @@ export const ADMIN_USERS = gql`
               connectionUri
               publishedAt
             }
+            devices {
+              deviceId
+            }
           }
         }
       }
@@ -491,6 +494,31 @@ export const ADMIN_USERS = gql`
         id
         title
         kind
+        language
+        scanning
+        roots {
+          id
+          path
+        }
+      }
+    }
+  }
+`;
+
+/** A library as its editor opens it, fetched fresh: its roots may have changed elsewhere. */
+export const LIBRARY_SETTINGS = gql`
+  query LibrarySettings($id: ID!) {
+    node(id: $id) {
+      id
+      ... on Library {
+        title
+        kind
+        language
+        scanning
+        roots {
+          id
+          path
+        }
       }
     }
   }
@@ -508,6 +536,7 @@ export const VIEWER = gql`
         role
         builtIn
         active
+        hasPassword
         createdAt
         libraryPermissions {
           nodes {
@@ -527,6 +556,13 @@ export const VIEWER = gql`
               accountName
               connectionUri
               publishedAt
+            }
+            devices {
+              deviceId
+              deviceName
+              client
+              clientVersion
+              signedInAt
             }
           }
         }
@@ -651,4 +687,18 @@ export const PLAYBACK_SESSIONS = gql`
     }
   }
   ${CARD_FIELDS}
+`;
+
+/** Whether a library is being scanned, asked again while it is. */
+export const LIBRARY_SCAN_STATE = gql`
+  query LibraryScanState($id: ID!) {
+    node(id: $id) {
+      id
+      ... on Library {
+        scanning
+        scannedAt
+        scanFailure
+      }
+    }
+  }
 `;

@@ -10,6 +10,8 @@ export default defineConfig(({ mode }) => {
     '/graphql': { target: apiTarget, changeOrigin: true },
     // Stream manifests, segments, files and subtitles handed out by startStream.
     '/streams': { target: apiTarget, changeOrigin: true },
+    // The Jellyfin surface, so the address the settings show works from the dev server too.
+    '/jellyfin': { target: apiTarget, changeOrigin: true },
   };
 
   return {

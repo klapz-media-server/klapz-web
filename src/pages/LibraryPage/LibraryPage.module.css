@@ -22,6 +22,14 @@
   min-width: 0;
 }
 
+.manage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
 .kindIcon {
   width: 44px;
   height: 44px;

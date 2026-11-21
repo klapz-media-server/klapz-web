@@ -97,8 +97,18 @@ Code: `hooks/useStreamSession.js` (startStream / stopStream), `hooks/useServerTr
 - **`/settings/account`**: who is signed in (username, e-mail, role), their libraries, sign-out.
 - **`/settings/plex`**: users pair their server with their plex.tv account themselves (code from plex.tv/claim +
   address), change the address or unpair.
+- **`/settings/jellyfin`**: users expose their libraries to Jellyfin apps themselves (`components/JellyfinSettings`):
+  **Enable Jellyfin** (`connectExtension(JELLYFIN)` on their own account), the server address to type in the app
+  (`<origin>/jellyfin`, with a copy button; the Vite dev server forwards `/jellyfin` too), the username and password to
+  sign in with, the apps signed in (`UserExtension.devices`) each with **Sign out** (`forgetExtensionDevice`), and
+  **Disable Jellyfin**, which signs every app out. Without a password, the page says so and points to the account
+  settings. Plex stays enabled by an owner only.
+- **Password** (`/settings/account`, `components/PasswordSettings`): set one, or change it with the current one
+  (`setPassword`). In `/admin`, an owner sets or resets a user's password (`components/UserPasswordDialog`, with a
+  generator): what a user created without one needs to sign in here and in Jellyfin apps. Each user card also shows
+  and switches Jellyfin access.
 - **`/settings/preferences`**: interface language.
-- **`/admin`** (`OWNER` role): create a user (username, optional e-mail), activate / deactivate them (pending ones first),
+- **`/admin`** (`OWNER` role): the libraries (see *Managing libraries*); create a user (username, optional e-mail), activate / deactivate them (pending ones first),
   delete them, grant or remove the owner role, their access to each library (none, reader, admin, or all at once),
   enable Plex (issues the token, shown only once), new token, disable. The server's refusals (`userErrors`) are shown. The
   built-in `admin` account (`builtIn`) is marked as such: demoting, deactivating or deleting it is offered disabled.
@@ -108,6 +118,29 @@ Code: `hooks/useStreamSession.js` (startStream / stopStream), `hooks/useServerTr
   resolution and bitrate).
 
 The account menu, at the top right, leads to settings, administration (owner), sign-out and the language choice.
+
+## Managing libraries
+
+- **`/admin` › Libraries** (owners): every library with its type, metadata language and folders, a *Scanning…* badge
+  while it is scanned; **Add library**, **Edit** and delete (`components/LibraryEditor`, `components/LibraryDeleteDialog`).
+- **Creating** (`createLibrary`, owners only): name, type (movies or shows), metadata language (a BCP 47 tag such as
+  `fr-FR`, suggested from the interface language) and one or more folders, as absolute paths **on the server**. The
+  server resolves each one and refuses a path it cannot reach (`ROOT_NOT_FOUND`) or a folder inside another
+  (`OVERLAPPING_ROOTS`); the error is shown under the folder at fault. The new library is scanned at once.
+- **Editing** (`updateLibrary`): a pencil next to the library's title on its page, for the library's **ADMIN** users and
+  the owners (`hooks/useCanEdit.js`). Admins change the name and the language; the folders are shown read-only to them,
+  and only owners change them (`OWNER_ONLY` otherwise). New folders start a scan, and the files of a folder removed
+  leave the library. Folders cannot change while the library is being scanned (`SCANNING`). Only changed fields are sent.
+- **Scanning** (`scanLibrary`, `cancelLibraryScan`): **Scan files** next to the library's title and on each row of
+  `/admin`, for its admins and the owners (`components/ScanButton`, `hooks/useLibraryScan.js`). The server finds new,
+  changed and removed files and has `klapz-scanner` analyse the new ones; while it runs the button stops it, and its
+  state is asked again every 2 s. When it ends, every query on screen is fetched again, so new items appear without a
+  reload.
+  When the last scan stopped before its end — the scanner's ffmpeg has no ffprobe of its own, say — the button says why
+  (`Library.scanFailure`, for the library's admins).
+- **Deleting** (`deleteLibrary`, owners only): a confirmation, then the library, its items, collections and access
+  rights are removed and its playbacks stop; files stay on disk. The library leaves the Apollo cache, the lists of
+  libraries are refetched, and its page sends back home.
 
 ## Editing movies, shows and episodes
 

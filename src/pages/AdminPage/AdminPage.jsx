@@ -5,7 +5,10 @@ import Button from '../../components/Button/Button';
 import Dialog from '../../components/Dialog/Dialog';
 import ErrorMessage from '../../components/ErrorMessage/ErrorMessage';
 import Icon from '../../components/Icon/Icon';
+import LibraryDeleteDialog from '../../components/LibraryDeleteDialog/LibraryDeleteDialog';
+import LibraryEditor from '../../components/LibraryEditor/LibraryEditor';
 import NowPlaying from '../../components/NowPlaying/NowPlaying';
+import ScanButton from '../../components/ScanButton/ScanButton';
 import Spinner from '../../components/Spinner/Spinner';
 import TextField from '../../components/TextField/TextField';
 import UserCard from '../../components/UserCard/UserCard';
@@ -18,9 +21,48 @@ import styles from './AdminPage.module.css';
 
 const refetch = { refetchQueries: [{ query: ADMIN_USERS }, { query: VIEWER }], awaitRefetchQueries: true };
 
+/** One library in the owners' list: what it holds, where it is scanned from, and its actions. */
+function LibraryRow({ library, onEdit, onDelete }) {
+  const { t } = useTranslation();
+  return (
+    <div className={styles.library}>
+      <span className={styles.libraryIcon}>
+        <Icon name={library.kind === 'SHOW' ? 'tv' : library.kind === 'MOVIE' ? 'movie' : 'grid'} size={20} />
+      </span>
+      <div className={styles.libraryInfo}>
+        <span className={styles.libraryTitle}>
+          {library.title}
+        </span>
+        <span className={styles.libraryMeta}>
+          {library.kind === 'SHOW' ? t('Shows') : library.kind === 'MOVIE' ? t('Movies') : library.kind} · {library.language}
+        </span>
+        {library.roots.length > 0 ? (
+          <ul className={styles.libraryRoots}>
+            {library.roots.map((root) => (
+              <li key={root.id}>
+                <Icon name="folder" size={13} />
+                <span>{root.path}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <span className={styles.libraryMeta}>{t('No folder')}</span>
+        )}
+      </div>
+      <div className={styles.libraryActions}>
+        {(library.kind === 'MOVIE' || library.kind === 'SHOW') && <ScanButton libraryId={library.id} />}
+        <Button size="sm" icon="edit" onClick={() => onEdit(library)}>
+          {t('Edit')}
+        </Button>
+        <Button size="sm" variant="danger" icon="trash" aria-label={t('Delete {{title}}', { title: library.title })} onClick={() => onDelete(library)} />
+      </div>
+    </div>
+  );
+}
+
 /**
- * Server administration: users, their role on the server and on each library, and
- * whether Plex apps may use the server on their behalf. For the server's owners.
+ * Server administration: users, their role on the server and on each library, the libraries
+ * themselves, and whether Plex apps may use the server on their behalf. For the server's owners.
  */
 export default function AdminPage() {
   const { t } = useTranslation();
@@ -38,6 +80,10 @@ export default function AdminPage() {
   const [toDelete, setToDelete] = useState(null);
   const [credentials, setCredentials] = useState(null);
   const [copied, setCopied] = useState(false);
+  // `null` for a new library, a library to edit, or `undefined` while the editor is closed.
+  const [editedLibrary, setEditedLibrary] = useState(undefined);
+  const [libraryToDelete, setLibraryToDelete] = useState(null);
+  const [notice, setNotice] = useState(null);
 
   if (!owner) {
     return (
@@ -135,7 +181,28 @@ export default function AdminPage() {
 
       <NowPlaying />
 
-      <h2 className={styles.sectionTitle}>{t('Users')}</h2>
+      <div className={styles.sectionHead}>
+        <h2 className={styles.sectionTitle}>{t('Libraries')}</h2>
+        <Button size="sm" variant="accent" icon="plus" onClick={() => setEditedLibrary(null)}>
+          {t('Add library')}
+        </Button>
+      </div>
+      {notice && (
+        <p className={styles.notice} role="status">
+          {notice}
+        </p>
+      )}
+      {libraries.length === 0 ? (
+        <p className={styles.empty}>{t('No library yet. Add one over a folder of the server.')}</p>
+      ) : (
+        <div className={styles.list}>
+          {libraries.map((library) => (
+            <LibraryRow key={library.id} library={library} onEdit={setEditedLibrary} onDelete={setLibraryToDelete} />
+          ))}
+        </div>
+      )}
+
+      <h2 className={[styles.sectionTitle, styles.spaced].join(' ')}>{t('Users')}</h2>
       <form className={styles.add} onSubmit={add} noValidate>
         <TextField
           className={styles.addField}
@@ -211,6 +278,21 @@ export default function AdminPage() {
             </Button>
           </>
         }
+      />
+
+      <LibraryEditor
+        open={editedLibrary !== undefined}
+        library={editedLibrary}
+        onClose={() => setEditedLibrary(undefined)}
+        onSaved={(saved, { scanned }) =>
+          setNotice(scanned ? t('{{title}} saved. Its folders are being scanned.', { title: saved.title }) : t('{{title}} saved.', { title: saved.title }))
+        }
+      />
+
+      <LibraryDeleteDialog
+        library={libraryToDelete}
+        onClose={() => setLibraryToDelete(null)}
+        onDeleted={(deleted) => setNotice(t('{{title}} deleted.', { title: deleted.title }))}
       />
 
       <Dialog

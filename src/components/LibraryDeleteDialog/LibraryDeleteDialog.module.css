@@ -1,0 +1,8 @@
+.failure {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(249, 55, 6, 0.12);
+  color: #ff8a6a;
+  font-size: 14px;
+}

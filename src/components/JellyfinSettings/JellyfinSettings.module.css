@@ -1,0 +1,130 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.badge {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.badge[data-on] {
+  background: rgba(77, 178, 136, 0.16);
+  color: var(--color-success);
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(229, 160, 13, 0.12);
+  color: var(--color-accent);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.warning svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.warning a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.failure {
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(249, 55, 6, 0.12);
+  color: #ff8a6a;
+  font-size: 14px;
+}
+
+.steps {
+  margin: 0 0 14px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: var(--color-text-default);
+  font-size: 14px;
+}
+
+.steps li {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.copyRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 560px;
+}
+
+.copyRow button {
+  height: 42px;
+}
+
+.grow {
+  flex: 1;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.devices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+.device {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-faint);
+}
+
+.deviceInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.deviceInfo strong {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}

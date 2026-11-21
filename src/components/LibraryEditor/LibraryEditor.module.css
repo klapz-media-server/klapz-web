@@ -1,0 +1,116 @@
+.form {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 18px;
+  align-items: start;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.kind {
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-default);
+  font-size: 15px;
+}
+
+.roots {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.rootRow {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.rootField {
+  flex: 1;
+}
+
+.rootField input {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 13px;
+}
+
+.rootRow button {
+  height: 42px;
+}
+
+.readOnlyRoots {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+}
+
+.readOnlyRoots li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-default);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.readOnlyRoots svg {
+  flex-shrink: 0;
+  color: var(--color-text-faint);
+}
+
+.hint {
+  color: var(--color-text-faint);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.error {
+  color: #ff8a6a;
+  font-size: 12px;
+}
+
+.failure {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(249, 55, 6, 0.12);
+  color: #ff8a6a;
+  font-size: 14px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+@media (max-width: 560px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}

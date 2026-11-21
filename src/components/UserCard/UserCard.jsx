@@ -3,8 +3,10 @@ import { useMutation } from '@apollo/client/react';
 import { useTranslation } from 'react-i18next';
 import {
   ACTIVATE_USER,
+  CONNECT_JELLYFIN,
   CONNECT_PLEX,
   DEACTIVATE_USER,
+  DISABLE_JELLYFIN,
   DISABLE_PLEX,
   REMOVE_LIBRARY_PERMISSION,
   SET_LIBRARY_PERMISSION,
@@ -15,6 +17,7 @@ import { formatDate } from '../../utils/format';
 import Button from '../Button/Button';
 import Icon from '../Icon/Icon';
 import SegmentedControl from '../SegmentedControl/SegmentedControl';
+import UserPasswordDialog from '../UserPasswordDialog/UserPasswordDialog';
 import styles from './UserCard.module.css';
 
 const refetch = { refetchQueries: [{ query: ADMIN_USERS }], awaitRefetchQueries: true };
@@ -40,10 +43,13 @@ export default function UserCard({ user, self = false, libraries, onDelete, onTo
     if (defaultOpen) setOpen(true);
   }
   const [pending, setPending] = useState(() => new Set());
+  const [settingPassword, setSettingPassword] = useState(false);
   const [setPermission] = useMutation(SET_LIBRARY_PERMISSION, refetch);
   const [removePermission] = useMutation(REMOVE_LIBRARY_PERMISSION, refetch);
   const [connectPlex, connecting] = useMutation(CONNECT_PLEX, refetch);
   const [disablePlex, disabling] = useMutation(DISABLE_PLEX, refetch);
+  const [connectJellyfin, connectingJellyfin] = useMutation(CONNECT_JELLYFIN, refetch);
+  const [disableJellyfin, disablingJellyfin] = useMutation(DISABLE_JELLYFIN, refetch);
   const [activate, activating] = useMutation(ACTIVATE_USER, refetchWithViewer);
   const [deactivate, deactivating] = useMutation(DEACTIVATE_USER, refetchWithViewer);
   const [setRole, settingRole] = useMutation(SET_USER_ROLE, refetchWithViewer);
@@ -66,6 +72,9 @@ export default function UserCard({ user, self = false, libraries, onDelete, onTo
   );
   const plex = plexOf(user);
   const plexEnabled = !!plex?.enabled;
+  const jellyfin = user.extensions.nodes.find((e) => e.extension === 'JELLYFIN') ?? null;
+  const jellyfinEnabled = !!jellyfin?.enabled;
+  const jellyfinDevices = jellyfin?.devices?.length ?? 0;
 
   const roleOptions = [
     { value: null, label: t('No access') },
@@ -154,6 +163,10 @@ export default function UserCard({ user, self = false, libraries, onDelete, onTo
           <span className={styles.dot} />
           {plexEnabled ? (plex.account ? t('Plex · paired') : t('Plex · enabled')) : t('Plex · off')}
         </span>
+        <span className={styles.plexChip} data-on={jellyfinEnabled || undefined}>
+          <span className={styles.dot} />
+          {jellyfinEnabled ? t('Jellyfin · on') : t('Jellyfin · off')}
+        </span>
         <button
           type="button"
           className={styles.expand}
@@ -236,6 +249,9 @@ export default function UserCard({ user, self = false, libraries, onDelete, onTo
                   {t('Activate the account')}
                 </Button>
               )}
+              <Button size="sm" icon="lock" onClick={() => setSettingPassword(true)}>
+                {user.hasPassword ? t('Reset the password') : t('Set a password')}
+              </Button>
             </div>
           </section>
 
@@ -266,6 +282,37 @@ export default function UserCard({ user, self = false, libraries, onDelete, onTo
                   onClick={() => account(setRole, 'setUserRole', { role: 'OWNER' })}
                 >
                   {t('Make owner')}
+                </Button>
+              )}
+            </div>
+          </section>
+
+          <section className={styles.section}>
+            <h3 className={styles.sectionTitle}>{t('Jellyfin access')}</h3>
+            <p className={styles.note}>
+              {jellyfinEnabled
+                ? t('Enabled: Jellyfin apps sign in with this user\'s password. {{count}} app signed in.', { count: jellyfinDevices })
+                : t('Off. The user can also enable it from their own settings.')}{' '}
+              {!user.hasPassword && t('This user has no password yet: they set one in their account settings.')}
+            </p>
+            <div className={styles.row}>
+              {jellyfinEnabled ? (
+                <Button
+                  size="sm"
+                  variant="danger"
+                  loading={disablingJellyfin.loading}
+                  onClick={() => disableJellyfin({ variables: { userId: user.id } }).catch(onError)}
+                >
+                  {t('Disable Jellyfin')}
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="accent"
+                  loading={connectingJellyfin.loading}
+                  onClick={() => connectJellyfin({ variables: { userId: user.id } }).catch(onError)}
+                >
+                  {t('Enable Jellyfin')}
                 </Button>
               )}
             </div>
@@ -318,6 +365,7 @@ export default function UserCard({ user, self = false, libraries, onDelete, onTo
           </section>
         </div>
       )}
+      <UserPasswordDialog user={settingPassword ? user : null} onClose={() => setSettingPassword(false)} />
     </article>
   );
 }
