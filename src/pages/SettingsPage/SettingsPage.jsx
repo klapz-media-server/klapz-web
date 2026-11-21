@@ -2,6 +2,7 @@ import { Navigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import AccountSettings from '../../components/AccountSettings/AccountSettings';
 import JellyfinSettings from '../../components/JellyfinSettings/JellyfinSettings';
+import PasswordSettings from '../../components/PasswordSettings/PasswordSettings';
 import PlexSettings from '../../components/PlexSettings/PlexSettings';
 import PreferencesSettings from '../../components/PreferencesSettings/PreferencesSettings';
 import SidebarLayout from '../../components/SidebarLayout/SidebarLayout';
@@ -9,8 +10,13 @@ import Spinner from '../../components/Spinner/Spinner';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { useViewer } from '../../hooks/useViewer';
 
+function PasswordSection({ session }) {
+  return session.user ? <PasswordSettings user={session.user} /> : null;
+}
+
 const SECTIONS = [
   { id: 'account', icon: 'person', label: (t) => t('Account'), Component: AccountSettings },
+  { id: 'password', icon: 'lock', label: (t) => t('Password'), Component: PasswordSection },
   { id: 'preferences', icon: 'settings', label: (t) => t('Preferences'), Component: PreferencesSettings },
   { id: 'plex', icon: 'server', label: (t) => t('Plex'), Component: PlexSettings },
   { id: 'jellyfin', icon: 'tv', label: (t) => t('Jellyfin'), Component: JellyfinSettings },

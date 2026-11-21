@@ -11,6 +11,9 @@ import { decisionFromStream } from '../../utils/playback';
 import { getStreamProtocol } from '../../utils/streamProtocol';
 import VideoPlayer from '../VideoPlayer/VideoPlayer';
 
+/** What Shaka loads a subtitle served apart as, by the format the server sent it in. */
+const SUBTITLE_MIME = { WEBVTT: 'text/vtt', ASS: 'text/x-ssa', SRT: 'text/srt' };
+
 /**
  * Real playback of an item's file: starts a stream on the server
  * (`startStream`), restarts it at the current position when a track or the
@@ -98,16 +101,18 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
 
   // ---- what VideoPlayer loads
   const subtitleStream = session.subtitle;
+  // A DASH manifest lists the subtitle itself; over HLS it is loaded apart.
   const textTrack = useMemo(
     () =>
       stream?.subtitlesUrl
         ? {
-            url: stream.subtitlesUrl,
+            url: stream.protocol === 'DASH' ? null : stream.subtitlesUrl,
+            mimeType: SUBTITLE_MIME[stream.subtitleFormat],
             language: subtitleStream?.language,
             label: subtitleStream?.title || languageLabel(subtitleStream?.language),
           }
         : null,
-    [stream?.subtitlesUrl, subtitleStream],
+    [stream?.subtitlesUrl, stream?.protocol, stream?.subtitleFormat, subtitleStream],
   );
 
   // Subtitles the server cannot deliver (an image track it cannot burn in yet) must not stop

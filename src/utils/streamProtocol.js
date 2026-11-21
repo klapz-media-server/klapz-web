@@ -1,7 +1,8 @@
 /**
  * How a converted stream is cut up, a choice of this browser: 'DASH' (fragmented MP4, the
  * default) or 'HLS' (MPEG-TS). The server copies H.264, HEVC, VP9 and AV1 over DASH but only
- * H.264 over HLS, and sends text subtitles beside a DASH stream only: over HLS they are burned.
+ * H.264 over HLS. Text subtitles come whole beside either: listed in a DASH manifest, loaded apart
+ * over HLS.
  */
 
 export const STREAM_PROTOCOLS = ['DASH', 'HLS'];

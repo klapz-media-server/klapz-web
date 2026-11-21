@@ -19,6 +19,8 @@ const CLIENT_IDENTIFIER = (() => {
 
 let counter = 0;
 
+const SUBTITLE_FORMATS = ['WEBVTT', 'ASS'];
+
 /**
  * The startStream input for a request, and what the browser will play.
  *
@@ -41,8 +43,7 @@ export function buildStreamInput({ file, version, request, playbackId, key }) {
 
   const protocol = request.protocol === 'HLS' ? 'HLS' : 'DASH';
   const copyable = copyableVideoCodecs(protocol).filter(canDecodeVideo);
-  // Text subtitles come beside a DASH stream only: over HLS they are burned too.
-  const subtitles = !subtitle ? 'NONE' : isImageSubtitle(subtitle.codec) || protocol === 'HLS' ? 'BURN' : 'TEXT';
+  const subtitles = !subtitle ? 'NONE' : isImageSubtitle(subtitle.codec) ? 'BURN' : 'TEXT';
 
   return {
     mime,
@@ -55,6 +56,8 @@ export function buildStreamInput({ file, version, request, playbackId, key }) {
       audioTrack: audio?.id ?? null,
       subtitleTrack: subtitle?.id ?? null,
       subtitles,
+      // Shaka draws both; an ASS subtitle stays ASS, any other text comes as WebVTT.
+      subtitleFormats: SUBTITLE_FORMATS,
       subtitleScale: 1,
       maxVideoBitrate: typeof request.quality === 'number' ? request.quality : null,
       convertAudio: !!audio && !canDecodeAudio(audio.codec),

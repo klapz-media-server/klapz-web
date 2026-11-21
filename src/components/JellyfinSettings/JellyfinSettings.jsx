@@ -127,7 +127,7 @@ export default function JellyfinSettings({ session }) {
             <Icon name="lock" size={15} />
             <span>
               {t('Jellyfin apps sign in with a password, and you have none yet.')}{' '}
-              <Link to="/settings/account">{t('Set one in your account settings.')}</Link>
+              <Link to="/settings/password">{t('Set one in your account settings.')}</Link>
             </span>
           </p>
         )}

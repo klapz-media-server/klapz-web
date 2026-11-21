@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-// The experimental build is the one that ships the SSA/ASS text parser,
-// the format the server sends text subtitles in.
+// The experimental build is the one that ships the SSA/ASS text parser: the server keeps an ASS
+// subtitle as it is.
 import shaka from 'shaka-player/dist/shaka-player.experimental.js';
 import { checkSession } from '../apollo/client';
 
@@ -59,8 +59,9 @@ function readTracks(player, videoDeliveryOf) {
  * and lift them above the controls.
  *
  * `options` (read when `src` changes): `startTime` in seconds, `mimeType`
- * for a file played as is, `textTrack` `{ url, language, label }` — an ASS
- * file served beside the stream, shown as soon as it is loaded.
+ * for a file played as is, `textTrack` `{ url, mimeType, language, label }` —
+ * the subtitle chosen, shown as soon as it is loaded: a file served beside the
+ * stream when it has a `url`, else the text track the manifest lists.
  */
 export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
   const optionsRef = useRef(options);
@@ -219,7 +220,7 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
               textTrack.url,
               textTrack.language || 'und',
               'subtitles',
-              'text/x-ssa',
+              textTrack.mimeType,
               undefined,
               textTrack.label,
             );
@@ -227,6 +228,9 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
           } catch {
             /* the video still plays without its subtitles */
           }
+        } else if (textTrack) {
+          const [listed] = player.getTextTracks();
+          player.selectTextTrack(listed ?? null);
         } else {
           // Subtitles start off, like Plex; the user picks a track.
           player.selectTextTrack(null);
