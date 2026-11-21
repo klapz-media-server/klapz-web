@@ -15,6 +15,15 @@ import styles from './TopBar.module.css';
 function LibraryMenu({ label, icon, libraries, currentId }) {
   const navigate = useNavigate();
   if (!libraries.length) return null;
+  if (libraries.length === 1) {
+    const [lib] = libraries;
+    return (
+      <NavLink to={libraryPath(lib.id)} className={styles.link}>
+        <Icon name={icon} size={18} className={styles.linkIcon} />
+        <span className={styles.linkLabel}>{lib.title}</span>
+      </NavLink>
+    );
+  }
   const active = libraries.some((l) => l.id === currentId);
   return (
     <Dropdown label={label} icon={icon} active={active}>
