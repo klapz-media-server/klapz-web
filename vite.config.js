@@ -4,15 +4,6 @@ import artworkPlugin from './server/artworkPlugin.js';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const apiTarget = env.API_URL || 'http://127.0.0.1:32500';
-
-  const proxy = {
-    '/graphql': { target: apiTarget, changeOrigin: true },
-    // Stream manifests, segments, files and subtitles handed out by startStream.
-    '/streams': { target: apiTarget, changeOrigin: true },
-    // The Jellyfin surface, so the address the settings show works from the dev server too.
-    '/jellyfin': { target: apiTarget, changeOrigin: true },
-  };
 
   return {
     // Public base path: `/` when served on its own, `/web/` when bundled with Klapz.
@@ -23,8 +14,8 @@ export default defineConfig(({ mode }) => {
         localsConvention: 'camelCaseOnly',
       },
     },
-    server: { port: 5180, strictPort: true, proxy },
-    preview: { port: 4173, proxy },
+    server: { port: 5180, strictPort: true },
+    preview: { port: 4173 },
     test: {
       environment: 'jsdom',
       include: ['src/**/*.test.{js,jsx}'],

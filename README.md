@@ -9,7 +9,8 @@ npm install
 npm run dev        # http://localhost:5180
 ```
 
-The dev server proxies `/graphql` to `http://127.0.0.1:32500` (set `API_URL` to change it).
+The page talks to the server chosen on `/connect` directly (for a local one, `127.0.0.1:32500`), which must
+allow the dev server's origin (see [Choosing the server](#choosing-the-server)).
 
 ## URLs
 
@@ -58,7 +59,6 @@ A click on the picture pauses / resumes, a double click toggles full screen.
 - **Resume**: `/play/:id?t=<ms>`; "Resume" and in-progress episodes pass their position. A show plays its first unwatched episode.
 - The badge and the *Info* tab show the server's decision (`delivery`, `videoDecision`, `audioDecision`).
   The API does not give the transcoding speed yet (`decisionFromStream` will read `transcodeSpeed` once it exists).
-- The Vite proxy forwards `/streams` (manifests, segments, files, subtitles) to the server.
 
 ### Test streams
 
@@ -70,6 +70,25 @@ Shortcuts: `Space`/`k` play-pause, `←` −10 s, `→`/`l` +30 s, `↑`/`↓` v
 Code: `hooks/useStreamSession.js` (startStream / stopStream), `hooks/useServerTrackOptions.js`, `hooks/useShakaPlayer.js` (Shaka instance), `hooks/useMediaState.js` (video state),
 `components/StreamPlayer` (real playback), `components/VideoPlayer` (interface) + `SeekBar`, `VolumeControl`, `PlayerSettings`, `PlaybackInfo`, `StreamBadge`, `PlayerIconButton`, `PlayerFeedback`.
 
+## Choosing the server
+
+- **`/connect`** (`pages/ConnectPage`) comes before everything: without a server chosen, `components/ServerGate`
+  sends any address there, then back (`?next=…`). With no server known it is an onboarding screen asking for one.
+- **Finding it** (`servers/probe.js`): the address typed (IP, domain, optional port, scheme or path) gives the
+  addresses to try — HTTPS then HTTP on 443 and 80, then port 32500 — all at once; the best one answering
+  `{ server { machineIdentifier } }` wins. Each attempt is shown live. A server that answers but refuses this page's
+  origin (CORS) is told apart from one that is down. From an HTTPS page, HTTP addresses are left out (mixed content).
+- **The list** (`servers/serverStore.js`, `localStorage` key `klapz.servers`): servers are added, switched and
+  removed on `/connect`, also reached from the account menu, the sign-in page and the "server unreachable" screen.
+  Each one's state (online, unreachable, access refused, not Klapz) is asked again every 30 s while shown.
+  `hooks/useServers.js` exposes the list and the actions; `useSwitchServer` empties the Apollo cache and starts the
+  app over on the new server (its own sign-in cookie decides what comes next).
+- Everything that talks to the server goes through `serverUrl()`: `/graphql` (Apollo, beacons), stream and subtitle
+  paths from `startStream`, the Jellyfin address. A `?ticket=` address makes the page's own origin the server in use.
+- **A server on another origin** must allow this page's origin for `/graphql` and `/streams` (CORS with credentials),
+  and send its session cookie as `SameSite=None; Secure`. Served by the server itself (`/web/`), the page's own
+  address is suggested and needs neither.
+
 ## Account, settings and administration
 
 - **Everything requires signing in** (`components/SessionGate`): without a session, the app shows only `/sign-in` and
@@ -79,8 +98,7 @@ Code: `hooks/useStreamSession.js` (startStream / stopStream), `hooks/useServerTr
 - **Sign-in** (`pages/AuthPage`): username **or** e-mail, and password. The refusals `INVALID_CREDENTIALS` (the same
   answer for an unknown account and a wrong password), `INACTIVE` and `TOO_MANY_ATTEMPTS` (five failures in fifteen
   minutes) each have their own message. The server answers with a session cookie (JWT, `HttpOnly; SameSite=Lax;
-  Secure`): the app keeps no token, Apollo sends the cookie (`credentials: 'same-origin'`, hence the Vite proxy on the
-  same origin).
+  Secure`): the app keeps no token, Apollo sends the cookie (`credentials: 'include'`).
 - **Sign-up**: username (3 to 32 characters among `a-z 0-9 . _ -`, lowercase), optional e-mail, password (8 to 256
   characters). The account stays **inactive** until an owner activates it in `/admin`.
 - **Expired session**: `/graphql` then answers as it does to nobody. On each page change, when a GraphQL request fails,

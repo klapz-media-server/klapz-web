@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { itemPath, playPath, queryString, safeNext, segment, signInPath, tagPath } from './routes';
+import { connectPath, itemPath, playPath, queryString, safeNext, segment, signInPath, tagPath } from './routes';
 
 describe('segment', () => {
   it('keeps base64 ids readable and escapes what would break a path', () => {
@@ -50,7 +50,7 @@ describe('safeNext', () => {
     expect(safeNext('/movie/abc?x=1#y')).toBe('/movie/abc?x=1#y');
   });
 
-  it.each(['//evil.example', '/\\evil.example', 'https://evil.example', 'javascript:alert(1)', '/sign-in', '/sign-up/x', 42, undefined])(
+  it.each(['//evil.example', '/\\evil.example', 'https://evil.example', 'javascript:alert(1)', '/sign-in', '/sign-up/x', '/connect', 42, undefined])(
     'refuses %s',
     (value) => {
       expect(safeNext(value)).toBe('/');
@@ -60,5 +60,11 @@ describe('safeNext', () => {
   it('leaves next out of the sign-in path when it is the home page', () => {
     expect(signInPath('/')).toBe('/sign-in');
     expect(signInPath('/admin')).toBe('/sign-in?next=%2Fadmin');
+  });
+
+  it('comes back from choosing a server', () => {
+    expect(connectPath('/')).toBe('/connect');
+    expect(connectPath('/sign-in')).toBe('/connect');
+    expect(connectPath('/library/x')).toBe('/connect?next=%2Flibrary%2Fx');
   });
 });

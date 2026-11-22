@@ -1,7 +1,9 @@
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import Layout from './components/Layout/Layout';
+import ServerGate from './components/ServerGate/ServerGate';
 import SessionGate from './components/SessionGate/SessionGate';
 import AuthPage from './pages/AuthPage/AuthPage';
+import ConnectPage from './pages/ConnectPage/ConnectPage';
 import HomePage from './pages/HomePage/HomePage';
 import LibraryPage from './pages/LibraryPage/LibraryPage';
 import MoviePage from './pages/MoviePage/MoviePage';
@@ -13,35 +15,42 @@ import SettingsPage from './pages/SettingsPage/SettingsPage';
 import ShowPage from './pages/ShowPage/ShowPage';
 
 const router = createBrowserRouter([
-  // Full-screen, outside the layout (no top bar). Item URLs are /<kind>/<id>/<slug>;
-  // the slug-less forms are older links, rewritten once the item is loaded.
-  { path: 'play/:id/:slug', element: <SessionGate><PlayerPage /></SessionGate> },
-  { path: 'play/:id', element: <SessionGate><PlayerPage /></SessionGate> },
-  // Keyed: switching between the two must not carry one form's state into the other.
-  { path: 'sign-in', element: <AuthPage key="sign-in" mode="sign-in" /> },
-  { path: 'sign-up', element: <AuthPage key="sign-up" mode="sign-up" /> },
+  // Choosing the server comes first: everything else talks to it.
+  { path: 'connect', element: <ConnectPage /> },
   {
-    element: (
-      <SessionGate>
-        <Layout />
-      </SessionGate>
-    ),
+    element: <ServerGate />,
     children: [
-      { index: true, element: <HomePage /> },
-      { path: 'library/:id', element: <LibraryPage /> },
-      { path: 'movie/:id/:slug', element: <MoviePage /> },
-      { path: 'movie/:id', element: <MoviePage /> },
-      { path: 'show/:id/:slug', element: <ShowPage /> },
-      { path: 'show/:id/:slug/:seasonId/:seasonSlug', element: <ShowPage /> },
-      { path: 'show/:id', element: <ShowPage /> },
-      { path: 'search', element: <SearchPage /> },
-      { path: 'settings', element: <SettingsPage /> },
-      { path: 'settings/:section', element: <SettingsPage /> },
-      { path: 'servers', element: <ServerPage /> },
-      { path: 'servers/:section', element: <ServerPage /> },
-      // The former address of the server's administration.
-      { path: 'admin', element: <Navigate to="/servers" replace /> },
-      { path: '*', element: <NotFoundPage /> },
+      // Full-screen, outside the layout (no top bar). Item URLs are /<kind>/<id>/<slug>;
+      // the slug-less forms are older links, rewritten once the item is loaded.
+      { path: 'play/:id/:slug', element: <SessionGate><PlayerPage /></SessionGate> },
+      { path: 'play/:id', element: <SessionGate><PlayerPage /></SessionGate> },
+      // Keyed: switching between the two must not carry one form's state into the other.
+      { path: 'sign-in', element: <AuthPage key="sign-in" mode="sign-in" /> },
+      { path: 'sign-up', element: <AuthPage key="sign-up" mode="sign-up" /> },
+      {
+        element: (
+          <SessionGate>
+            <Layout />
+          </SessionGate>
+        ),
+        children: [
+          { index: true, element: <HomePage /> },
+          { path: 'library/:id', element: <LibraryPage /> },
+          { path: 'movie/:id/:slug', element: <MoviePage /> },
+          { path: 'movie/:id', element: <MoviePage /> },
+          { path: 'show/:id/:slug', element: <ShowPage /> },
+          { path: 'show/:id/:slug/:seasonId/:seasonSlug', element: <ShowPage /> },
+          { path: 'show/:id', element: <ShowPage /> },
+          { path: 'search', element: <SearchPage /> },
+          { path: 'settings', element: <SettingsPage /> },
+          { path: 'settings/:section', element: <SettingsPage /> },
+          { path: 'servers', element: <ServerPage /> },
+          { path: 'servers/:section', element: <ServerPage /> },
+          // The former address of the server's administration.
+          { path: 'admin', element: <Navigate to="/servers" replace /> },
+          { path: '*', element: <NotFoundPage /> },
+        ],
+      },
     ],
   },
 ], { basename: import.meta.env.BASE_URL });

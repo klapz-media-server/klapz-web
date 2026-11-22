@@ -18,8 +18,8 @@ const SECTIONS = [
   { id: 'account', icon: 'person', label: (t) => t('Account'), Component: AccountSettings },
   { id: 'password', icon: 'lock', label: (t) => t('Password'), Component: PasswordSection },
   { id: 'preferences', icon: 'settings', label: (t) => t('Preferences'), Component: PreferencesSettings },
-  { id: 'plex', icon: 'server', label: (t) => t('Plex'), Component: PlexSettings },
-  { id: 'jellyfin', icon: 'tv', label: (t) => t('Jellyfin'), Component: JellyfinSettings },
+  { id: 'plex', icon: 'plex', label: (t) => t('Plex'), Component: PlexSettings },
+  { id: 'jellyfin', icon: 'jellyfin', label: (t) => t('Jellyfin'), Component: JellyfinSettings },
 ];
 
 /** /settings/:section — the signed-in account's settings. */

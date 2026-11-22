@@ -4,6 +4,7 @@ import { useMutation } from '@apollo/client/react';
 import { useTranslation } from 'react-i18next';
 import { CONNECT_JELLYFIN, DISABLE_JELLYFIN, FORGET_JELLYFIN_DEVICE } from '../../graphql/mutations';
 import { VIEWER } from '../../graphql/queries';
+import { activeServer } from '../../servers/serverStore';
 import { formatDate } from '../../utils/format';
 import Button from '../Button/Button';
 import Dialog from '../Dialog/Dialog';
@@ -15,11 +16,11 @@ import styles from './JellyfinSettings.module.css';
 const refetch = { refetchQueries: [{ query: VIEWER }], awaitRefetchQueries: true };
 
 /**
- * The address Jellyfin apps are given: this server's, below `/jellyfin`. The page is served by
- * the server itself, or in development by a server that forwards `/jellyfin` to it.
+ * The address Jellyfin apps are given: the chosen server's, below `/jellyfin`. Without one,
+ * this page's own origin.
  */
-export function jellyfinAddress(origin = window.location.origin) {
-  return `${origin}/jellyfin`;
+export function jellyfinAddress(base = activeServer()?.url ?? window.location.origin) {
+  return `${base}/jellyfin`;
 }
 
 export function jellyfinOf(user) {

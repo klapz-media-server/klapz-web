@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useApolloClient } from '@apollo/client/react';
 import { START_STREAM, STOP_STREAM } from '../graphql/mutations';
+import { serverUrl } from '../servers/serverStore';
 import { canDecodeAudio, canDecodeVideo, directPlayMime, isImageSubtitle } from '../utils/capabilities';
 import { sendBeacon } from '../utils/gqlBeacon';
 import { copyableVideoCodecs, manifestMime } from '../utils/streamProtocol';
@@ -120,7 +121,12 @@ export function useStreamSession({ file, version, request, playbackId }) {
         sessionRef.current = payload.session;
         setState({
           status: 'ready',
-          stream: payload.stream,
+          // The server hands out paths (`/streams/…?token=…`): on the chosen server.
+          stream: {
+            ...payload.stream,
+            url: serverUrl(payload.stream.url),
+            subtitlesUrl: serverUrl(payload.stream.subtitlesUrl),
+          },
           session: payload.session,
           mime: loadMime,
           input,

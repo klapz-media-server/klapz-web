@@ -135,6 +135,14 @@ export default function PlaybackInfo({ decision, source, live }) {
           <dd>{kbps(stats?.estimatedBandwidth) ?? '—'}</dd>
         </div>
         <div>
+          <dt>{t('Server wait per segment')}</dt>
+          <dd>
+            {live?.production?.averageMs != null
+              ? `${new Intl.NumberFormat(locale(), { maximumFractionDigits: 2 }).format(live.production.averageMs / 1000)} s`
+              : '—'}
+          </dd>
+        </div>
+        <div>
           <dt>{t('Buffer')}</dt>
           <dd>{live?.bufferAhead != null ? `${new Intl.NumberFormat(locale(), { maximumFractionDigits: 1 }).format(live.bufferAhead)} s` : '—'}</dd>
         </div>

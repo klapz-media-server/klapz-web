@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { useServers } from '../../hooks/useServers';
 import { useViewer } from '../../hooks/useViewer';
 import { LANGUAGES } from '../../i18n';
 import Dropdown, { DropdownHeading, DropdownItem } from '../Dropdown/Dropdown';
@@ -10,6 +11,7 @@ export default function AccountMenu() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user, owner, signOut } = useViewer();
+  const { active: server } = useServers();
   const label = user?.username ?? t('Account');
   const current = i18n.resolvedLanguage ?? 'en';
 
@@ -29,9 +31,15 @@ export default function AccountMenu() {
             <span className={styles.who}>
               <strong>{label}</strong>
               <span>{owner ? t('Owner of the server') : t('User account')}</span>
+              {server && (
+                <span className={styles.server} title={server.url}>
+                  {server.name}
+                </span>
+              )}
             </span>
           </div>
           <DropdownItem onClick={() => go(close, '/settings')}>{t('Settings')}</DropdownItem>
+          <DropdownItem onClick={() => go(close, '/connect')}>{t('Change server')}</DropdownItem>
           <DropdownItem
             onClick={async () => {
               close();

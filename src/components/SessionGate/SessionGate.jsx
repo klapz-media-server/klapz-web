@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router';
+import { Link, Navigate, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { checkSession } from '../../apollo/client';
 import { useViewer } from '../../hooks/useViewer';
-import { signInPath } from '../../utils/routes';
+import { connectPath, signInPath } from '../../utils/routes';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 import Spinner from '../Spinner/Spinner';
 
@@ -30,9 +30,16 @@ export default function SessionGate({ children }) {
     checkSession();
   }, [location.pathname]);
 
+  const here = `${location.pathname}${location.search}${location.hash}`;
   if (loading) return <Spinner fullPage />;
   // Not knowing who is asking is no reason to show the sign-in page: the server may just be down.
-  if (!viewer && error) return <ErrorMessage title={t('Server unreachable')} error={error} onRetry={() => refetch()} />;
-  if (!user) return <Navigate to={signInPath(`${location.pathname}${location.search}${location.hash}`)} replace />;
+  if (!viewer && error) {
+    return (
+      <ErrorMessage title={t('Server unreachable')} error={error} onRetry={() => refetch()}>
+        <Link to={connectPath(here)}>{t('Change server')}</Link>
+      </ErrorMessage>
+    );
+  }
+  if (!user) return <Navigate to={signInPath(here)} replace />;
   return children;
 }

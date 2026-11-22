@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // subtitle as it is.
 import shaka from 'shaka-player/dist/shaka-player.experimental.js';
 import { checkSession } from '../apollo/client';
+import { createNetworkAbr } from '../utils/networkAbr';
 
 let polyfilled = false;
 
@@ -70,6 +71,10 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
   // destroyed (it detaches from the element) before the next one attaches.
   const destroyedRef = useRef(Promise.resolve());
   const playerRef = useRef(null);
+  // True while playback is held on the remux with ABR off (see `startOnRemux`).
+  const pinnedOnRemuxRef = useRef(false);
+  // The server's wait before each video segment, kept apart from the link's speed.
+  const productionRef = useRef(null);
   const [status, setStatus] = useState('idle'); // idle | loading | ready | error
   const [error, setError] = useState(null);
   const [tracks, setTracks] = useState(EMPTY_TRACKS);
@@ -147,10 +152,24 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
     const audioDeliveryOf = (variant) => deliveries.get(variant.originalAudioId) ?? null;
     const hasDeliveries = () => deliveries.size > 0 || hlsDeliveries.size > 0;
 
+    // ABR judges the link alone: the time the server spends producing a segment is not counted.
+    const networkAbr = createNetworkAbr();
+    productionRef.current = networkAbr.production;
     player.configure({
+      abrFactory: networkAbr.factory,
       // A segment request is tried up to 5 times (Shaka's default is 2) before playback fails.
-      streaming: { bufferingGoal: 30, rebufferingGoal: 2, retryParameters: { maxAttempts: 5 } },
-      abr: { enabled: true },
+      // `dontChooseCodecs`: Shaka otherwise keeps a single codec per resolution, the lighter one,
+      // which can drop the remux (HEVC, AV1…) in favour of an H.264 encode of the same size.
+      streaming: {
+        bufferingGoal: 30,
+        rebufferingGoal: 2,
+        retryParameters: { maxAttempts: 5 },
+        dontChooseCodecs: true,
+      },
+      // `useNetworkInformation`: when the browser exposes `navigator.connection.downlink`
+      // (Chrome, Edge: capped at 10 Mb/s), Shaka uses it in place of `defaultBandwidthEstimate`,
+      // and the remux would never be the starting pick.
+      abr: { enabled: true, useNetworkInformation: false },
       manifest: {
         dash: {
           manifestPreprocessorTXml: (mpd) => {
@@ -161,18 +180,46 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
       },
     });
 
+    // While ABR stays on, its next evaluation overrides a manual pick with its own bandwidth
+    // measure — which a segment the server is still producing makes look slow. So playback is
+    // pinned on the remux, ABR off, and ABR only takes over once playback actually stalls.
+    pinnedOnRemuxRef.current = false;
+    let hasPlayed = false;
+    let stalls = [];
+    const STALLS_BEFORE_FALLBACK = 2;
+    const STALL_WINDOW_MS = 60_000;
+
     const isRemuxVideo = (variant) => videoDeliveryOf(variant) === 'remux';
     const startOnRemux = () => {
       const variants = player.getVariantTracks();
       const active = variants.find((t) => t.active);
-      if (active && isRemuxVideo(active)) return;
       // Same audio as now: only the picture changes rung.
       const candidates = variants.filter(
         (t) => isRemuxVideo(t) && (!active || t.originalAudioId === active.originalAudioId),
       );
       const best = candidates.sort((a, b) => b.bandwidth - a.bandwidth)[0];
-      if (best) player.selectVariantTrack(best, true);
+      if (!best) return;
+      player.configure('abr.enabled', false);
+      pinnedOnRemuxRef.current = true;
+      stalls = [];
+      if (!active || active.id !== best.id) player.selectVariantTrack(best, true);
     };
+
+    const onPlaying = () => {
+      hasPlayed = true;
+    };
+    const onBuffering = (event) => {
+      if (cancelled || !pinnedOnRemuxRef.current || !event.buffering || !hasPlayed || video.seeking) return;
+      const now = Date.now();
+      stalls = [...stalls.filter((at) => now - at < STALL_WINDOW_MS), now];
+      if (stalls.length >= STALLS_BEFORE_FALLBACK) {
+        // The link cannot keep up with the file's own track: let ABR pick an encode.
+        pinnedOnRemuxRef.current = false;
+        player.configure('abr.enabled', true);
+      }
+    };
+    video.addEventListener('playing', onPlaying);
+    player.addEventListener('buffering', onBuffering);
 
     const refresh = () => {
       if (cancelled) return;
@@ -247,6 +294,7 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
 
     return () => {
       cancelled = true;
+      video.removeEventListener('playing', onPlaying);
       playerRef.current = null;
       destroyedRef.current = player.destroy();
     };
@@ -264,6 +312,7 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
   const selectQuality = useCallback((track) => {
     const player = playerRef.current;
     if (!player) return;
+    pinnedOnRemuxRef.current = false;
     if (!track) {
       player.configure('abr.enabled', true);
       setAbr(true);
@@ -286,7 +335,7 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
         bufferAhead = video.buffered.end(i) - video.currentTime;
       }
     }
-    return { stats: player.getStats(), variant, bufferAhead };
+    return { stats: player.getStats(), variant, bufferAhead, production: productionRef.current };
   }, [videoRef]);
 
   return {

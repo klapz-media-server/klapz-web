@@ -90,14 +90,14 @@ export function searchPath(query, params) {
 /**
  * A `next` parameter as a path of this app, or `/`. It comes from the URL, so anyone can
  * write it: `//elsewhere`, `/\elsewhere`, `https://…` or `javascript:` must not send the
- * user away once signed in, and the sign-in pages must not send back to themselves.
+ * user away once signed in, and the sign-in and server pages must not send back to themselves.
  */
 export function safeNext(value) {
   if (typeof value !== 'string' || !value.startsWith('/') || /[\\\x00-\x1f]/.test(value)) return '/';
   try {
     const base = window.location.origin;
     const url = new URL(value, base);
-    if (url.origin !== base || /^\/sign-(in|up)(\/|$)/.test(url.pathname)) return '/';
+    if (url.origin !== base || /^\/(sign-(in|up)|connect)(\/|$)/.test(url.pathname)) return '/';
     return `${url.pathname}${url.search}${url.hash}`;
   } catch {
     return '/';
@@ -108,4 +108,10 @@ export function safeNext(value) {
 export function signInPath(next, page = '/sign-in') {
   const target = safeNext(next);
   return `${page}${queryString({ next: target === '/' ? null : target })}`;
+}
+
+/** The page to choose or add a server, coming back to `next` once connected. */
+export function connectPath(next) {
+  const target = safeNext(next);
+  return `/connect${queryString({ next: target === '/' ? null : target })}`;
 }

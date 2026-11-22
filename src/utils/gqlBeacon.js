@@ -1,6 +1,7 @@
 import { print } from 'graphql';
+import { serverUrl } from '../servers/serverStore';
 
-const URL = import.meta.env.VITE_GRAPHQL_URL || '/graphql';
+const GRAPHQL_PATH = import.meta.env.VITE_GRAPHQL_URL || '/graphql';
 
 /**
  * Fire-and-forget GraphQL request that survives the page going away
@@ -9,10 +10,10 @@ const URL = import.meta.env.VITE_GRAPHQL_URL || '/graphql';
  */
 export function sendBeacon(document, variables) {
   try {
-    fetch(URL, {
+    fetch(serverUrl(GRAPHQL_PATH), {
       method: 'POST',
       keepalive: true,
-      credentials: 'same-origin',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: print(document), variables }),
     }).catch(() => {});

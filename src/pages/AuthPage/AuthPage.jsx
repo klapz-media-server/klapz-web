@@ -8,8 +8,10 @@ import PasswordField from '../../components/PasswordField/PasswordField';
 import TextField from '../../components/TextField/TextField';
 import { FIELD_OF_ACCOUNT_ERROR, USERNAME_PATTERN, useAccountErrorText } from '../../hooks/useAccountErrorText';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { useServers } from '../../hooks/useServers';
 import { useViewer } from '../../hooks/useViewer';
-import { safeNext, signInPath } from '../../utils/routes';
+import { connectPath, safeNext, signInPath } from '../../utils/routes';
+import connect from '../ConnectPage/ConnectPage.module.css';
 import styles from './AuthPage.module.css';
 
 const MIN_PASSWORD = 8;
@@ -25,6 +27,7 @@ export default function AuthPage({ mode }) {
   const [params] = useSearchParams();
   const next = safeNext(params.get('next'));
   const session = useViewer();
+  const { active: server } = useServers();
   const errorText = useAccountErrorText();
   const signingUp = mode === 'sign-up';
   usePageTitle(signingUp ? t('Create an account') : t('Sign in'));
@@ -166,6 +169,15 @@ export default function AuthPage({ mode }) {
               {signingUp ? t('Already have an account?') : t('No account yet?')}{' '}
               <Link to={otherLink}>{signingUp ? t('Sign in') : t('Create an account')}</Link>
             </p>
+            {server && (
+              <div className={connect.serverChip}>
+                <Icon name="server" size={18} />
+                <span title={server.url}>
+                  <strong>{server.name}</strong> · {server.url}
+                </span>
+                <Link to={connectPath(next)}>{t('Change')}</Link>
+              </div>
+            )}
           </>
         )}
       </main>

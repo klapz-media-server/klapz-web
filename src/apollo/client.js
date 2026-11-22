@@ -3,6 +3,7 @@ import { CombinedGraphQLErrors, ServerError } from '@apollo/client/errors';
 import { ErrorLink } from '@apollo/client/link/error';
 import { relayStylePagination } from '@apollo/client/utilities';
 import { VIEWER } from '../graphql/queries';
+import { serverUrl } from '../servers/serverStore';
 
 const possibleTypes = {
   Item: ['Movie', 'Show', 'Season', 'Episode'],
@@ -25,6 +26,9 @@ const possibleTypes = {
     'Person',
   ],
 };
+
+/** Where the API is, on the chosen server (`serverStore`). */
+export const GRAPHQL_PATH = import.meta.env.VITE_GRAPHQL_URL || '/graphql';
 
 /** Asking again who is signed in, at most this often, however many requests fail at once. */
 const SESSION_CHECK_MS = 5000;
@@ -52,11 +56,11 @@ const sessionLink = new ErrorLink(({ error, operation }) => {
 });
 
 export const client = new ApolloClient({
-  // The session is an HttpOnly cookie the server sets on sign-in: same-origin requests carry
-  // it, and no script can read it.
+  // The session is an HttpOnly cookie the server sets on sign-in: requests to the chosen
+  // server carry it (`include`, as it may be another origin), and no script can read it.
   link: ApolloLink.from([
     sessionLink,
-    new HttpLink({ uri: import.meta.env.VITE_GRAPHQL_URL || '/graphql', credentials: 'same-origin' }),
+    new HttpLink({ uri: () => serverUrl(GRAPHQL_PATH), credentials: 'include' }),
   ]),
   cache: new InMemoryCache({
     possibleTypes,
