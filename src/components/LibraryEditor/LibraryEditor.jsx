@@ -6,6 +6,7 @@ import { LIBRARY_SETTINGS } from '../../graphql/queries';
 import { useViewer } from '../../hooks/useViewer';
 import Button from '../Button/Button';
 import Dialog from '../Dialog/Dialog';
+import FolderPicker from '../FolderPicker/FolderPicker';
 import Icon from '../Icon/Icon';
 import SegmentedControl from '../SegmentedControl/SegmentedControl';
 import Spinner from '../Spinner/Spinner';
@@ -43,8 +44,10 @@ function useErrorText() {
     })[code] ?? t('The server refused the changes.');
 }
 
-function RootList({ roots, errors, onChange, readOnly }) {
+/** The folders a library scans, typed or, for an owner, picked on the server (`canBrowse`). */
+function RootList({ roots, errors, onChange, readOnly, canBrowse }) {
   const { t } = useTranslation();
+  const [browsing, setBrowsing] = useState(null);
   if (readOnly) {
     return (
       <ul className={styles.readOnlyRoots}>
@@ -73,6 +76,11 @@ function RootList({ roots, errors, onChange, readOnly }) {
             onChange={(e) => set(index, e.target.value)}
             error={errors[index]}
           />
+          {canBrowse && (
+            <Button icon="folder" title={t('Browse the folders of the server')} onClick={() => setBrowsing(index)}>
+              {t('Browse…')}
+            </Button>
+          )}
           <Button
             variant="ghost"
             icon="close"
@@ -86,6 +94,12 @@ function RootList({ roots, errors, onChange, readOnly }) {
       <Button size="sm" icon="plus" onClick={() => onChange([...roots, ''])} disabled={roots.length >= MAX_ROOTS}>
         {t('Add a folder')}
       </Button>
+      <FolderPicker
+        open={browsing !== null}
+        start={browsing !== null ? roots[browsing] : null}
+        onClose={() => setBrowsing(null)}
+        onPick={(path) => set(browsing, path)}
+      />
     </div>
   );
 }
@@ -225,7 +239,7 @@ function EditorForm({ library, formId, onBusy, onDone }) {
       </div>
       <div className={styles.field}>
         <span className={styles.label}>{t('Folders')}</span>
-        <RootList roots={values.roots} errors={errors.roots} onChange={set('roots')} readOnly={!creating && !owner} />
+        <RootList roots={values.roots} errors={errors.roots} onChange={set('roots')} readOnly={!creating && !owner} canBrowse={owner} />
         {errors.rootsList && (
           <p className={styles.error} role="alert">
             {errors.rootsList}
@@ -234,7 +248,7 @@ function EditorForm({ library, formId, onBusy, onDone }) {
         <p className={styles.hint}>
           {!creating && !owner
             ? t('Only an owner of the server chooses the folders.')
-            : t('Absolute paths on the server. The library is scanned once saved; files of a folder removed leave the library.')}
+            : t('Absolute paths on the server, typed or browsed. The library is scanned once saved; files of a folder removed leave the library.')}
         </p>
       </div>
     </form>

@@ -44,7 +44,7 @@
   "A title of 1 to 255 characters.": "A title of 1 to 255 characters.",
   "A tunnel or a new domain: Plex apps are told at once, no need to pair again.": "A tunnel or a new domain: Plex apps are told at once, no need to pair again.",
   "A year from 1 to 9999.": "A year from 1 to 9999.",
-  "Absolute paths on the server. The library is scanned once saved; files of a folder removed leave the library.": "Absolute paths on the server. The library is scanned once saved; files of a folder removed leave the library.",
+  "Absolute paths on the server, typed or browsed. The library is scanned once saved; files of a folder removed leave the library.": "Absolute paths on the server, typed or browsed. The library is scanned once saved; files of a folder removed leave the library.",
   "Access refused": "Access refused",
   "Access to {{library}}": "Access to {{library}}",
   "Account": "Account",

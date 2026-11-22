@@ -44,7 +44,7 @@
   "A title of 1 to 255 characters.": "Un nom de 1 à 255 caractères.",
   "A tunnel or a new domain: Plex apps are told at once, no need to pair again.": "Un tunnel ou un nouveau domaine : les applis Plex sont prévenues aussitôt, pas besoin de réappairer.",
   "A year from 1 to 9999.": "Une année de 1 à 9999.",
-  "Absolute paths on the server. The library is scanned once saved; files of a folder removed leave the library.": "Chemins absolus sur le serveur. La bibliothèque est analysée une fois enregistrée ; les fichiers d’un dossier retiré la quittent.",
+  "Absolute paths on the server, typed or browsed. The library is scanned once saved; files of a folder removed leave the library.": "Chemins absolus sur le serveur, saisis ou parcourus. La bibliothèque est analysée une fois enregistrée ; les fichiers d’un dossier retiré la quittent.",
   "Access refused": "Accès refusé",
   "Access to {{library}}": "Accès à {{library}}",
   "Account": "Compte",
