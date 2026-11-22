@@ -713,3 +713,31 @@ export const LIBRARY_SCAN_STATE = gql`
     }
   }
 `;
+
+/**
+ * The server's folders, for an owner choosing a library's: without `path`, its drives or `/`;
+ * with one, the folders inside it. Owners only. `error` (NOT_FOUND, NOT_A_DIRECTORY,
+ * UNREADABLE) says why `listing` is null.
+ */
+export const SERVER_DIRECTORIES = gql`
+  query ServerDirectories($path: String, $first: Int, $after: String) {
+    serverDirectories(path: $path) {
+      error
+      listing {
+        path
+        parent
+        truncated
+        directories(first: $first, after: $after) {
+          nodes {
+            name
+            path
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }
+  }
+`;

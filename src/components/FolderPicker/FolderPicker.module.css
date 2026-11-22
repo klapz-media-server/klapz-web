@@ -1,0 +1,123 @@
+.toolbar {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.breadcrumb {
+  flex: 1;
+  min-width: 0;
+}
+
+.breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  list-style: none;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 13px;
+}
+
+.breadcrumb li {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.breadcrumb li + li::before {
+  content: '›';
+  padding: 0 2px;
+  color: var(--color-text-faint);
+}
+
+.breadcrumb button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.breadcrumb button:hover,
+.breadcrumb button:focus-visible {
+  background: var(--color-control);
+  color: var(--color-text-primary);
+  outline: none;
+}
+
+.breadcrumb button[aria-current] {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.body {
+  margin-top: 10px;
+  min-height: 240px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-default);
+  font-size: 14px;
+  text-align: left;
+}
+
+.entry span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.entry svg {
+  flex-shrink: 0;
+  color: var(--color-text-faint);
+}
+
+.entry:hover,
+.entry:focus-visible {
+  background: var(--color-control);
+  color: var(--color-text-primary);
+  outline: none;
+}
+
+.more {
+  margin: 10px 12px 0;
+}
+
+.state {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.hint {
+  margin-top: 12px;
+  color: var(--color-text-faint);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.failure {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(249, 55, 6, 0.12);
+  color: #ff8a6a;
+  font-size: 14px;
+}
