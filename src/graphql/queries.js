@@ -9,6 +9,10 @@ export const LIBRARIES = gql`
         kind
         title
         hidden
+        scanning
+        stats {
+          itemCount
+        }
       }
     }
   }
@@ -94,6 +98,13 @@ export const LIBRARY_INFO = gql`
       ... on Library {
         title
         kind
+        stats {
+          itemCount
+        }
+        roots {
+          id
+          path
+        }
         genres: tags(kind: GENRE, first: 60) {
           nodes {
             ...TagFields

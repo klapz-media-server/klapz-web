@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from '../../components/Button/Button';
+import EmptyState from '../../components/EmptyState/EmptyState';
 import Icon from '../../components/Icon/Icon';
 import LibraryDeleteDialog from '../../components/LibraryDeleteDialog/LibraryDeleteDialog';
 import LibraryEditor from '../../components/LibraryEditor/LibraryEditor';
@@ -68,7 +69,17 @@ export default function LibrariesSection({ libraries }) {
         </p>
       )}
       {libraries.length === 0 ? (
-        <p className={styles.empty}>{t('No library yet. Add one over a folder of the server.')}</p>
+        <EmptyState
+          variant="compact"
+          icon="folder"
+          title={t('No library yet')}
+          description={t('A library lists the movies or shows of folders on the server. Users see the libraries you share with them.')}
+          actions={
+            <Button variant="accent" icon="plus" onClick={() => setEditedLibrary(null)}>
+              {t('Add library')}
+            </Button>
+          }
+        />
       ) : (
         <div className={styles.list}>
           {libraries.map((library) => (

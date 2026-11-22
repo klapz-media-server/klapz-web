@@ -43,12 +43,6 @@
   gap: 10px;
 }
 
-.empty {
-  padding: 40px 0;
-  color: var(--color-text-muted);
-  text-align: center;
-}
-
 .denied {
   color: var(--color-text-muted);
   font-size: 14px;

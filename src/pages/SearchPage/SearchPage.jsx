@@ -1,6 +1,8 @@
 import { useNavigate, useSearchParams } from 'react-router';
 import { useQuery } from '@apollo/client/react';
 import { Trans, useTranslation } from 'react-i18next';
+import Button from '../../components/Button/Button';
+import EmptyState from '../../components/EmptyState/EmptyState';
 import ErrorMessage from '../../components/ErrorMessage/ErrorMessage';
 import PosterCard from '../../components/PosterCard/PosterCard';
 import PosterGrid from '../../components/PosterGrid/PosterGrid';
@@ -79,7 +81,22 @@ export default function SearchPage() {
           <SkeletonRow />
         </Slider>
       ) : !results.length ? (
-        <p className={styles.hint}>{t('No results for “{{query}}”.', { query: q })}</p>
+        <EmptyState
+          icon="search"
+          title={t('No results for “{{query}}”', { query: q })}
+          description={
+            kind.value
+              ? t('Check the spelling, try fewer words, or search every type of title.')
+              : t('Check the spelling, or try fewer words. Search looks into every library you can see.')
+          }
+          actions={
+            kind.value && (
+              <Button variant="secondary" icon="search" onClick={() => setKind(null)}>
+                {t('Search all types')}
+              </Button>
+            )
+          }
+        />
       ) : kind.value ? (
         <div data-stale={loading || undefined} className={styles.results}>
           {kind.value === 'EPISODE' ? (

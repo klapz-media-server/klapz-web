@@ -29,14 +29,6 @@
   gap: 16px;
 }
 
-.empty {
-  padding: 22px 18px;
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-md);
-  color: var(--color-text-muted);
-  font-size: 14px;
-}
-
 .skeleton {
   height: 290px;
   border-radius: var(--radius-md);
