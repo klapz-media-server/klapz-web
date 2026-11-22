@@ -13,7 +13,6 @@ import PlayerFeedback from '../PlayerFeedback/PlayerFeedback';
 import PlayerIconButton from '../PlayerIconButton/PlayerIconButton';
 import PlayerSettings from '../PlayerSettings/PlayerSettings';
 import SeekBar from '../SeekBar/SeekBar';
-import StreamBadge from '../StreamBadge/StreamBadge';
 import VolumeControl from '../VolumeControl/VolumeControl';
 import styles from './VideoPlayer.module.css';
 
@@ -249,9 +248,6 @@ export default function VideoPlayer({
         <div className={styles.titles}>
           {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
           <h1 className={styles.title}>{title}</h1>
-        </div>
-        <div className={styles.topEnd}>
-          <StreamBadge decision={decision} onClick={() => toggleSettings('info')} data-settings-toggle />
         </div>
       </header>
 
