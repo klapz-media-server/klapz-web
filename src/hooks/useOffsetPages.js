@@ -47,6 +47,8 @@ export function useOffsetPages({ query, variables, select, pageSize, total }) {
     () => () => {
       for (const page of [...watched.current.keys()]) drop(page);
       cancelAnimationFrame(flushFrame.current);
+      // Cleared too, or every later delivery would wait on a frame that never comes.
+      flushFrame.current = 0;
       arrived.current = {};
     },
     [key],
@@ -101,7 +103,10 @@ export function useOffsetPages({ query, variables, select, pageSize, total }) {
         watched.current.set(page, entry);
       }
     },
-    [client, query, pageSize, total, deliver],
+    // `key` too: a new listing is a new `request`, so the grid asks again even when the
+    // total, and the rows in view, are the same as the last listing's.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [client, query, pageSize, total, deliver, key],
   );
 
   const item = useCallback((index) => pages[Math.floor(index / pageSize)]?.[index % pageSize], [pages, pageSize]);
