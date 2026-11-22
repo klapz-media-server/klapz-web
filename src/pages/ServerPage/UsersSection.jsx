@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useMutation } from '@apollo/client/react';
 import { useTranslation } from 'react-i18next';
 import Button from '../../components/Button/Button';
 import Dialog from '../../components/Dialog/Dialog';
+import EmptyState from '../../components/EmptyState/EmptyState';
 import TextField from '../../components/TextField/TextField';
 import UserCard from '../../components/UserCard/UserCard';
 import { CREATE_USER, DELETE_USER } from '../../graphql/mutations';
@@ -24,6 +25,7 @@ export default function UsersSection({ users, libraries }) {
   const [deleteUser, deleting] = useMutation(DELETE_USER, refetch);
   const errorText = useAccountErrorText();
   const [username, setUsername] = useState('');
+  const usernameField = useRef(null);
   const [email, setEmail] = useState('');
   const [fieldError, setFieldError] = useState(null);
   const [message, setMessage] = useState(null);
@@ -106,6 +108,7 @@ export default function UsersSection({ users, libraries }) {
           autoCapitalize="none"
           spellCheck={false}
           placeholder={t('username')}
+          inputRef={usernameField}
           aria-label={t('Username of the new user')}
           value={username}
           onChange={(e) => {
@@ -138,7 +141,17 @@ export default function UsersSection({ users, libraries }) {
       )}
 
       {sorted.length === 0 ? (
-        <p className={styles.empty}>{t('No users yet. Add one with a username.')}</p>
+        <EmptyState
+          variant="compact"
+          icon="person"
+          title={t('No users yet')}
+          description={t('Add one with a username above, then give them a password and the libraries they may see.')}
+          actions={
+            <Button variant="accent" icon="plus" onClick={() => usernameField.current?.focus()}>
+              {t('Add user')}
+            </Button>
+          }
+        />
       ) : (
         <div className={styles.list}>
           {sorted.map((user) => (

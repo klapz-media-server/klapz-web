@@ -1,6 +1,6 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
-import { useQuery } from '@apollo/client/react';
+import { useApolloClient, useQuery } from '@apollo/client/react';
 import { useTranslation } from 'react-i18next';
 import Button from '../../components/Button/Button';
 import Dropdown, { DropdownItem } from '../../components/Dropdown/Dropdown';
@@ -22,6 +22,7 @@ import { usePageTitle } from '../../hooks/usePageTitle';
 import { useViewer } from '../../hooks/useViewer';
 import { formatNumber } from '../../utils/format';
 import { libraryPath, queryString, readParam, tagPath } from '../../utils/routes';
+import LibraryEmpty from './LibraryEmpty';
 import styles from './LibraryPage.module.css';
 
 const SORTS = [
@@ -112,7 +113,7 @@ function ActiveTag({ tagId, onClear }) {
   );
 }
 
-function AllItems({ libraryId, genres, params }) {
+function AllItems({ libraryId, genres, params, empty }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -149,6 +150,10 @@ function AllItems({ libraryId, genres, params }) {
   );
   const pages = useOffsetPages({ query: LIBRARY_PAGE, variables, select: selectPage, pageSize: PAGE_SIZE, total });
   const error = listing.error ?? (pages.loaded ? null : pages.error);
+  const refetchListing = listing.refetch;
+  const refreshListing = useCallback(() => refetchListing().catch(() => {}), [refetchListing]);
+  // Nothing at all, not merely nothing matching: the sorting and filtering tools have no use.
+  const libraryEmpty = total === 0 && !filter;
 
   const gridRef = useRef(null);
   const [firstVisible, setFirstVisible] = useState(0);
@@ -175,6 +180,8 @@ function AllItems({ libraryId, genres, params }) {
     })),
   ];
   const showGenreChips = !tagId || tagKind === 'GENRE';
+
+  if (libraryEmpty && !error) return <LibraryEmpty {...empty} filtered={false} onRefresh={refreshListing} />;
 
   return (
     <>
@@ -234,7 +241,7 @@ function AllItems({ libraryId, genres, params }) {
       ) : total == null ? (
         <PosterGrid items={[]} skeletonCount={24} />
       ) : total === 0 ? (
-        <p className={styles.empty}>{t('No items match these filters.')}</p>
+        <LibraryEmpty {...empty} filtered onClearFilters={() => update({ tag: null, kind: null, unwatched: null })} />
       ) : (
         <div className={styles.listing} data-letters={letters.length > 1 || undefined}>
           <VirtualPosterGrid
@@ -268,12 +275,23 @@ export default function LibraryPage() {
   const { owner } = useViewer();
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(null);
+  const refreshInfo = useCallback(() => refetch().catch(() => {}), [refetch]);
+  const client = useApolloClient();
 
   if (loading && !data) return <Spinner fullPage />;
   if (error) return <ErrorMessage error={error} onRetry={() => refetch()} />;
   if (!library) return <ErrorMessage title={t('Library not found')} />;
 
   const genres = library.genres?.nodes ?? [];
+  const isEmpty = library.stats?.itemCount === 0;
+  const empty = {
+    libraryId: id,
+    kind: library.kind,
+    roots: library.roots ?? null,
+    canEdit,
+    owner,
+    onEditFolders: () => setEditing(true),
+  };
 
   return (
     <div className={styles.page}>
@@ -318,7 +336,9 @@ export default function LibraryPage() {
         </nav>
       </header>
 
-      {view === 'recommended' ? (
+      {view === 'recommended' && isEmpty ? (
+        <LibraryEmpty {...empty} filtered={false} onRefresh={refreshInfo} />
+      ) : view === 'recommended' ? (
         <>
           {genres.length > 0 && (
             <TagList
@@ -331,10 +351,16 @@ export default function LibraryPage() {
           <Recommended libraryId={id} kind={library.kind} genres={genres} />
         </>
       ) : (
-        <AllItems key={id} libraryId={id} genres={genres} params={params} />
+        <AllItems key={id} libraryId={id} genres={genres} params={params} empty={empty} />
       )}
 
-      <LibraryEditor open={editing} library={{ id }} onClose={() => setEditing(false)} />
+      <LibraryEditor
+        open={editing}
+        library={{ id }}
+        onClose={() => setEditing(false)}
+        // Its folders, their state and a scan the change started all show on the page.
+        onSaved={() => client.refetchQueries({ include: 'active' }).catch(() => {})}
+      />
       <LibraryDeleteDialog library={deleting} onClose={() => setDeleting(null)} onDeleted={() => navigate('/', { replace: true })} />
     </div>
   );

@@ -6,6 +6,7 @@ import { PLAYBACK_SESSIONS } from '../../graphql/queries';
 import { channelsLabel, episodeCode, formatBitrate, formatClock, formatDuration, parseDateTime, resolutionLabel } from '../../utils/format';
 import { itemPath } from '../../utils/routes';
 import Artwork from '../Artwork/Artwork';
+import EmptyState from '../EmptyState/EmptyState';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 import Icon from '../Icon/Icon';
 import { useModeLabel } from '../StreamBadge/StreamBadge';
@@ -162,7 +163,12 @@ export default function NowPlaying() {
           <div className={styles.skeleton} />
         </div>
       ) : sessions.length === 0 ? (
-        <p className={styles.empty}>{t('Nothing is being played right now.')}</p>
+        <EmptyState
+          variant="compact"
+          icon="play"
+          title={t('Nothing is being played right now')}
+          description={t('What your users watch appears here as soon as they start.')}
+        />
       ) : (
         <div className={styles.grid}>
           {sessions.map((session) => (

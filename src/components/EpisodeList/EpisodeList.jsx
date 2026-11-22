@@ -5,6 +5,7 @@ import { useWatchToggle } from '../../hooks/useWatchToggle';
 import { formatDay, formatDuration, formatRemaining, progressRatio } from '../../utils/format';
 import { playPath } from '../../utils/routes';
 import Artwork from '../Artwork/Artwork';
+import EmptyState from '../EmptyState/EmptyState';
 import Icon from '../Icon/Icon';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import styles from './EpisodeList.module.css';
@@ -72,7 +73,17 @@ export default function EpisodeList({ episodes, onEdit }) {
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [location.hash, episodes]);
 
-  if (!episodes.length) return <p className={styles.empty}>{t('No episodes in this season.')}</p>;
+  if (!episodes.length) {
+    return (
+      <EmptyState
+        variant="compact"
+        icon="tv"
+        title={t('No episodes in this season')}
+        description={t('Its episodes appear here once their files are scanned.')}
+        className={styles.empty}
+      />
+    );
+  }
   return (
     <ol className={styles.list}>
       {episodes.map((episode) => (
