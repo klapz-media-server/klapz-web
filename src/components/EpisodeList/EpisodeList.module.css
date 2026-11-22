@@ -136,8 +136,7 @@
 }
 
 .empty {
-  padding: 24px var(--gutter);
-  color: var(--color-text-muted);
+  margin: 8px var(--gutter) 0;
 }
 
 @media (max-width: 760px) {
