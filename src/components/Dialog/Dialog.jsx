@@ -5,6 +5,7 @@ import styles from './Dialog.module.css';
  * Modal built on <dialog> (focus trap, Escape, backdrop for free).
  * Rendered only while `open`; `onClose` fires on Escape or backdrop click.
  * `size="wide"` for a form: wider, and its body scrolls between a fixed title and actions.
+ * A dialog may open another from inside it.
  */
 export default function Dialog({ open, onClose, title, description, children, actions, tone, size }) {
   const ref = useRef(null);
@@ -26,6 +27,9 @@ export default function Dialog({ open, onClose, title, description, children, ac
       data-size={size}
       onCancel={(e) => {
         e.preventDefault();
+        // React bubbles `cancel` up its own tree: Escape in a dialog opened from another
+        // must not close that one too.
+        e.stopPropagation();
         onClose?.();
       }}
       onClick={(e) => {
