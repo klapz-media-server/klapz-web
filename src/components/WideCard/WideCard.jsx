@@ -24,7 +24,7 @@ export default function WideCard({ item, label }) {
     <Link to={itemPath(item)} className={styles.card} title={title}>
       <div className={styles.imageWrap}>
         <Artwork
-          guid={item.guid}
+          item={item}
           type={type}
           size="thumb"
           ratio="16 / 9"

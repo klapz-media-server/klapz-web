@@ -79,7 +79,7 @@ function SessionCard({ session, now }) {
     <article className={styles.card} data-state={session.state}>
       <header className={styles.head}>
         <Link to={item ? itemPath(item) : '#'} className={styles.poster} tabIndex={-1} aria-hidden="true">
-          <Artwork guid={episode ? item.show?.guid : item?.guid} title={episode ? item.show?.title : item?.title} placeholderIcon={episode ? 'tv' : 'movie'} />
+          <Artwork item={episode ? item.show : item} title={episode ? item.show?.title : item?.title} placeholderIcon={episode ? 'tv' : 'movie'} />
         </Link>
         <div className={styles.what}>
           {item ? (

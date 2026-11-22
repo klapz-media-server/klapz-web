@@ -20,7 +20,7 @@ const SUBTITLE_MIME = { WEBVTT: 'text/vtt', ASS: 'text/x-ssa', SRT: 'text/srt' }
  * quality changes, reports the position (`reportPlayback`, `reportViewing`)
  * and stops it on the way out (`stopStream`).
  */
-export default function StreamPlayer({ item, version, file, title, subtitle, posterGuid, onBack, startMs = 0 }) {
+export default function StreamPlayer({ item, version, file, title, subtitle, posterItem, onBack, startMs = 0 }) {
   const { t } = useTranslation();
   const client = useApolloClient();
   const [playbackId] = useState(() => `open-web-${crypto.randomUUID()}`);
@@ -152,7 +152,7 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
       textTrack={textTrack}
       title={title}
       subtitle={subtitle}
-      posterGuid={posterGuid}
+      posterItem={posterItem}
       onBack={onBack}
       decision={decisionFromStream(stream)}
       source={version}

@@ -90,13 +90,13 @@ export default function ShowPage() {
   ].filter(Boolean);
   const cast = tags.cast.edges;
   const similar = show.similar.nodes;
-  const seasonItem = (s) => ({ ...s, __typename: 'Season', show: { id: show.id, slug: show.slug, title: show.title, guid: show.guid } });
+  const seasonItem = (s) => ({ ...s, __typename: 'Season', show: { id: show.id, slug: show.slug, title: show.title, guid: show.guid, images: show.images } });
 
   return (
     <div className={styles.page}>
-      <Backdrop guid={show.guid} />
+      <Backdrop item={show} />
       <DetailHero
-        guid={show.guid}
+        item={show}
         title={show.title}
         eyebrow={show.library && { label: show.library.title, to: libraryPath(libId) }}
         badge={formatContentRating(show.contentRating)}

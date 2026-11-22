@@ -44,6 +44,13 @@
   animation: shimmer 1.6s linear infinite;
 }
 
+/* The image's own blurred preview stands still: only the generic placeholder shimmers. */
+.placeholder[data-preview] {
+  background-size: cover;
+  background-position: center;
+  animation: none;
+}
+
 .placeholder[data-state='error'] {
   background:
     radial-gradient(120% 80% at 20% 0%, hsl(var(--hue) 45% 32% / 0.9), transparent 70%),

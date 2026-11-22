@@ -135,6 +135,11 @@ export const SPOTLIGHT = gql`
             id
             title
             guid
+            images {
+              kind
+              url
+              blurHash
+            }
             summary
             ... on Movie {
               slug
@@ -188,6 +193,11 @@ export const MOVIE = gql`
         slug
         originalTitle
         guid
+        images {
+          kind
+          url
+          blurHash
+        }
         summary
         tagline
         year
@@ -243,6 +253,11 @@ export const SHOW = gql`
         slug
         originalTitle
         guid
+        images {
+          kind
+          url
+          blurHash
+        }
         summary
         tagline
         year
@@ -282,6 +297,11 @@ export const SHOW = gql`
             title
             slug
             guid
+            images {
+              kind
+              url
+              blurHash
+            }
             number
             year
             watchState {
@@ -316,6 +336,11 @@ export const SEASON_EPISODES = gql`
             title
             slug
             guid
+            images {
+              kind
+              url
+              blurHash
+            }
             number
             summary
             durationMs
@@ -331,11 +356,21 @@ export const SEASON_EPISODES = gql`
               slug
               number
               guid
+              images {
+                kind
+                url
+                blurHash
+              }
             }
             show {
               id
               slug
               guid
+              images {
+                kind
+                url
+                blurHash
+              }
             }
           }
         }
@@ -379,6 +414,11 @@ export const PLAYER_ITEM = gql`
         title
         slug
         guid
+        images {
+          kind
+          url
+          blurHash
+        }
         year
         durationMs
         watchState {
@@ -393,6 +433,11 @@ export const PLAYER_ITEM = gql`
         title
         slug
         guid
+        images {
+          kind
+          url
+          blurHash
+        }
         year
         episodes(first: 500) {
           nodes {
@@ -409,6 +454,11 @@ export const PLAYER_ITEM = gql`
         title
         slug
         guid
+        images {
+          kind
+          url
+          blurHash
+        }
         number
         durationMs
         watchState {
@@ -422,12 +472,22 @@ export const PLAYER_ITEM = gql`
           id
           number
           guid
+          images {
+            kind
+            url
+            blurHash
+          }
         }
         show {
           id
           slug
           title
           guid
+          images {
+            kind
+            url
+            blurHash
+          }
         }
       }
     }

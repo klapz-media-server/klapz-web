@@ -40,11 +40,11 @@ export default function PlayerPage() {
 
   let title = item?.title ?? '';
   let subtitle = null;
-  let posterGuid = item?.guid;
+  let posterItem = item;
   if (item?.__typename === 'Episode') {
     subtitle = [item.show?.title, episodeCode(item.season?.number, item.number)].filter(Boolean).join(' · ');
     title = item.title || t('Episode {{number}}', { number: item.number });
-    posterGuid = item.show?.guid ?? item.guid;
+    posterItem = [item.show, item];
   } else if (item?.__typename === 'Movie') {
     subtitle = item.year ? String(item.year) : null;
   }
@@ -56,7 +56,7 @@ export default function PlayerPage() {
     else navigate(item ? itemPath(item) : '/');
   };
 
-  const common = { title, subtitle, posterGuid, onBack: goBack };
+  const common = { title, subtitle, posterItem, onBack: goBack };
 
   if (testSrc) {
     return <VideoPlayer {...common} src={testSrc} decision={testDecision(params)} source={item?.versions?.[0]} />;

@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { artworkUrl, hueFromString } from '../../utils/artwork';
+import { artworkUrl, hueFromString, previewFor } from '../../utils/artwork';
 import Icon from '../Icon/Icon';
 import styles from './Artwork.module.css';
 
 /**
- * An image from the artwork endpoint, with a fade-in and a generated
+ * An item's image, with a fade-in over its blurred preview while it loads, and a generated
  * placeholder when the item has no artwork.
  *
+ * `item` is the item, or a list of items tried in order (a season, then its series).
  * `ratio` is a CSS aspect-ratio (`2 / 3`, `16 / 9`…).
  */
 export default function Artwork({
-  guid,
+  item,
   type = 'poster',
   size,
   title = '',
@@ -19,7 +20,8 @@ export default function Artwork({
   placeholderIcon = 'movie',
   eager = false,
 }) {
-  const src = artworkUrl(guid, type, size);
+  const src = artworkUrl(item, type, size);
+  const preview = previewFor(item, type);
   const [state, setState] = useState(src ? 'loading' : 'error');
   const [prevSrc, setPrevSrc] = useState(src);
   if (src !== prevSrc) {
@@ -27,15 +29,22 @@ export default function Artwork({
     setState(src ? 'loading' : 'error');
   }
 
-  const hue = hueFromString(title || guid || '');
+  const first = Array.isArray(item) ? item[0] : item;
+  const hue = hueFromString(title || first?.guid || '');
 
   return (
     <div
       className={[styles.frame, className].filter(Boolean).join(' ')}
       style={{ aspectRatio: ratio, '--hue': hue }}
     >
-      {state !== 'loaded' && (
-        <div className={styles.placeholder} data-state={state}>
+      {/* A preview stays under the image, which fades in over it once loaded. */}
+      {(state !== 'loaded' || preview) && (
+        <div
+          className={styles.placeholder}
+          data-state={state}
+          data-preview={(preview && state !== 'error') || undefined}
+          style={preview && state !== 'error' ? { backgroundImage: `url("${preview}")` } : undefined}
+        >
           {state === 'error' && (
             <>
               <Icon name={placeholderIcon} size={28} className={styles.placeholderIcon} />

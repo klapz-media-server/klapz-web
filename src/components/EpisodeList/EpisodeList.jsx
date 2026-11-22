@@ -19,7 +19,7 @@ function EpisodeRow({ episode, onEdit }) {
   return (
     <li id={`e-${episode.id}`} className={styles.row}>
       <Link className={styles.thumb} to={playPath(episode, episode.watchState?.isWatched ? 0 : episode.watchState?.offsetMs)} aria-label={t('Play {{title}}', { title })}>
-        <Artwork guid={episode.guid} type="thumb" size="thumb" ratio="16 / 9" title={title} placeholderIcon="tv" />
+        <Artwork item={episode} type="thumb" size="thumb" ratio="16 / 9" title={title} placeholderIcon="tv" />
         <span className={styles.play} aria-hidden="true">
           <Icon name="play" size={20} />
         </span>

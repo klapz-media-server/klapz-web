@@ -55,9 +55,9 @@ export default function MoviePage() {
 
   return (
     <div className={styles.page}>
-      <Backdrop guid={movie.guid} />
+      <Backdrop item={movie} />
       <DetailHero
-        guid={movie.guid}
+        item={movie}
         title={movie.title}
         eyebrow={movie.library && { label: movie.library.title, to: libraryPath(libId) }}
         badge={formatContentRating(movie.contentRating)}

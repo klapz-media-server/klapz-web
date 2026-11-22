@@ -45,7 +45,7 @@ export default function Spotlight({ items }) {
     >
       <div className={styles.slides} aria-hidden="true">
         {items.map((item, i) => {
-          const src = artworkUrl(item.guid, 'background', 'background');
+          const src = artworkUrl(item, 'background', 'background');
           return (
             <div
               key={item.id}
@@ -60,7 +60,7 @@ export default function Spotlight({ items }) {
 
       <div className={styles.content} key={current.id}>
         <span className={styles.kicker}>{t('Featured')}</span>
-        <TitleLogo guid={current.guid} title={current.title} />
+        <TitleLogo item={current} title={current.title} />
         <MetaLine badge={formatContentRating(current.contentRating)} items={meta} />
         {current.summary && <p className={styles.summary}>{current.summary}</p>}
         <div className={styles.actions}>

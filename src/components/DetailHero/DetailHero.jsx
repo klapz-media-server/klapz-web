@@ -12,7 +12,7 @@ import styles from './DetailHero.module.css';
  * the page backdrop.
  */
 export default function DetailHero({
-  guid,
+  item,
   title,
   eyebrow,
   tagline,
@@ -33,7 +33,7 @@ export default function DetailHero({
           {eyebrow.to ? <Link to={eyebrow.to}>{eyebrow.label}</Link> : eyebrow.label}
         </p>
       )}
-      <TitleLogo guid={guid} title={title} />
+      <TitleLogo item={item} title={title} />
       <div className={styles.metaBlock}>
         <MetaLine badge={badge} items={meta} />
         <RatingList ratings={ratings} fallback={fallbackRating} />

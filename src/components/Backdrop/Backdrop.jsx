@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { artworkUrl } from '../../utils/artwork';
+import { artworkUrl, previewFor } from '../../utils/artwork';
 import styles from './Backdrop.module.css';
 
 /**
@@ -7,13 +7,16 @@ import styles from './Backdrop.module.css';
  * for the ambient color (Plex's "ultrablur") and the sharp artwork in the
  * top-right corner, faded into the page.
  */
-export default function Backdrop({ guid }) {
-  const sharp = artworkUrl(guid, 'background', 'background');
-  const ambient = artworkUrl(guid, 'background', 'backgroundSmall');
+export default function Backdrop({ item }) {
+  const sharp = artworkUrl(item, 'background', 'background');
+  // The preview's few colours are the ambient blur already, with nothing more to fetch, and
+  // shown at once: the sharp image fades in over it.
+  const preview = previewFor(item, 'background');
+  const ambient = preview ?? artworkUrl(item, 'background', 'backgroundSmall');
   const [loaded, setLoaded] = useState(false);
-  const [prev, setPrev] = useState(guid);
-  if (prev !== guid) {
-    setPrev(guid);
+  const [prev, setPrev] = useState(sharp);
+  if (prev !== sharp) {
+    setPrev(sharp);
     setLoaded(false);
   }
 
@@ -22,7 +25,7 @@ export default function Backdrop({ guid }) {
       {ambient && (
         <div
           className={styles.ambient}
-          data-loaded={loaded || undefined}
+          data-loaded={loaded || Boolean(preview) || undefined}
           style={{ backgroundImage: `url("${ambient}")` }}
         />
       )}

@@ -5,6 +5,11 @@ export const CARD_FIELDS = gql`
     id
     title
     guid
+    images {
+      kind
+      url
+      blurHash
+    }
     watchState {
       isWatched
       offsetMs
@@ -32,6 +37,11 @@ export const CARD_FIELDS = gql`
         slug
         title
         guid
+        images {
+          kind
+          url
+          blurHash
+        }
       }
     }
     ... on Episode {
@@ -43,12 +53,22 @@ export const CARD_FIELDS = gql`
         slug
         number
         guid
+        images {
+          kind
+          url
+          blurHash
+        }
       }
       show {
         id
         slug
         title
         guid
+        images {
+          kind
+          url
+          blurHash
+        }
       }
     }
   }

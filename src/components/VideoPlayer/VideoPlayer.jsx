@@ -61,7 +61,7 @@ export default function VideoPlayer({
   textTrack,
   title,
   subtitle,
-  posterGuid,
+  posterItem,
   onBack,
   decision: startDecision,
   source,
@@ -220,7 +220,7 @@ export default function VideoPlayer({
   const loading = preparing || shakaState.status === 'loading' || (media.waiting && !media.paused);
   const showBigPlay = shakaState.status === 'ready' && (!media.started || autoplayBlocked || media.ended) && !loading;
   const failed = streamError || (shakaState.status === 'error' ? shakaState.error : null);
-  const poster = artworkUrl(posterGuid, 'background', 'background');
+  const poster = artworkUrl(posterItem, 'background', 'background');
   const duration = media.duration || (durationHintMs ? durationHintMs / 1000 : 0);
   const remaining = Math.max(0, duration - media.currentTime);
   const subtitlesOn = options.text.some((o) => o.selected && o.key !== 'off');

@@ -14,26 +14,24 @@ export function describeItem(item) {
       return {
         title: item.show?.title ?? seasonLabel(item),
         subtitle: seasonLabel(item),
-        guid: item.guid,
-        fallbackGuid: item.show?.guid,
+        art: [item, item.show],
       };
     case 'Episode':
       return {
         title: item.show?.title ?? item.title,
         subtitle: [episodeCode(item.season?.number, item.number), item.title].filter(Boolean).join(' — '),
-        guid: item.season?.guid ?? item.show?.guid,
-        fallbackGuid: item.show?.guid,
+        art: [item.season, item.show],
       };
     case 'Show': {
       const seasons = item.stats?.seasonCount;
       return {
         title: item.title,
         subtitle: seasons ? seasonCount(seasons) : item.year,
-        guid: item.guid,
+        art: item,
       };
     }
     default:
-      return { title: item.title, subtitle: item.year, guid: item.guid };
+      return { title: item.title, subtitle: item.year, art: item };
   }
 }
 
@@ -43,7 +41,7 @@ function PosterCard({ item, fluid = false, active = false, replace = false, titl
   const described = describeItem(item);
   const title = titleOverride ?? described.title;
   const subtitle = subtitleOverride ?? described.subtitle;
-  const { guid } = described;
+  const { art } = described;
   const progress = progressRatio(item.watchState, item.durationMs);
   const unwatched =
     item.__typename === 'Show' && item.stats
@@ -65,7 +63,7 @@ function PosterCard({ item, fluid = false, active = false, replace = false, titl
     >
       <div className={styles.posterWrap}>
         <Artwork
-          guid={guid}
+          item={art}
           type="poster"
           title={title}
           placeholderIcon={item.__typename === 'Movie' ? 'movie' : 'tv'}

@@ -3,8 +3,8 @@ import { artworkUrl } from '../../utils/artwork';
 import styles from './TitleLogo.module.css';
 
 /** The title's clear logo when one exists, otherwise the title as text. */
-export default function TitleLogo({ guid, title }) {
-  const src = artworkUrl(guid, 'logo');
+export default function TitleLogo({ item, title }) {
+  const src = artworkUrl(item, 'logo');
   const [state, setState] = useState(src ? 'loading' : 'error');
   const [prev, setPrev] = useState(src);
   if (prev !== src) {
