@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useQuery } from '@apollo/client/react';
 import { useTranslation } from 'react-i18next';
 import Button from '../../components/Button/Button';
 import EmptyState from '../../components/EmptyState/EmptyState';
 import Icon from '../../components/Icon/Icon';
-import { LIBRARY_ROOTS } from '../../graphql/queries';
 import { useLibraryScan } from '../../hooks/useLibraryScan';
 import { libraryEmptyCase } from './libraryEmptyCase';
 import styles from './LibraryPage.module.css';
@@ -17,10 +15,9 @@ function RootList({ roots }) {
   return (
     <ul className={styles.emptyRoots} aria-label={t('Folders of this library')}>
       {roots.map((root) => (
-        <li key={root.id} data-unreachable={root.reachable === false || undefined}>
+        <li key={root.id}>
           <Icon name="folder" size={14} />
           <span className={styles.emptyRootPath}>{root.path}</span>
-          {root.reachable === false && <span className={styles.emptyRootState}>{t('Unreachable')}</span>}
         </li>
       ))}
     </ul>
@@ -42,8 +39,8 @@ function NamingHint({ kind }) {
 }
 
 /**
- * What an empty library shows, telling apart filters that match nothing, a scan running, a folder
- * that cannot be reached and folders that hold nothing. Folders and the actions to fix them are
+ * What an empty library shows, telling apart filters that match nothing, a scan running, a library
+ * without folders or never scanned, and folders that hold nothing. Folders and the actions to fix them are
  * for those who may use them: scanning for the library's admins, the folders for the owners.
  * `onRefresh` asks again whether the library still is empty, which it does while a scan runs.
  */
@@ -51,10 +48,7 @@ export default function LibraryEmpty({ libraryId, kind, roots, filtered, onClear
   const { t } = useTranslation();
   const scan = useLibraryScan(libraryId);
   const [refusal, setRefusal] = useState(null);
-  // Looks at the disks: asked only for an empty library, and again on each visit.
-  const live = useQuery(LIBRARY_ROOTS, { variables: { id: libraryId }, skip: filtered, fetchPolicy: 'network-only' });
-  // A server that cannot tell whether a folder is reached answers with an error: the paths stay.
-  const knownRoots = live.data?.node?.roots ?? roots ?? null;
+  const knownRoots = roots ?? null;
 
   useEffect(() => {
     if (!scan.scanning || !onRefresh) return undefined;
@@ -119,17 +113,6 @@ export default function LibraryEmpty({ libraryId, kind, roots, filtered, onClear
             : t('Ask an owner of the server to add a folder to it.')
           : t('Nothing has been added to this library yet.'),
         actions: [editAction(t('Add a folder'), 'accent', 'plus')],
-      };
-      break;
-    case 'unreachable':
-      state = {
-        icon: 'folder',
-        title: canEdit ? t("This folder can't be reached") : t("This library can't be reached right now"),
-        description: canEdit
-          ? t('The server cannot open it: a disk may be unplugged, or a network share down. Its items are kept until it is back.')
-          : t('Its files are on a disk or a share that is not available. Try again later.'),
-        details: canEdit && <RootList roots={knownRoots} />,
-        actions: [scanAction(t('Try again'), 'primary'), editAction(t('Edit folders'), 'secondary')],
       };
       break;
     case 'neverScanned':

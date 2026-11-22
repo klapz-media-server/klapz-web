@@ -701,26 +701,6 @@ export const PLAYBACK_SESSIONS = gql`
 `;
 
 /** Whether a library is being scanned, asked again while it is. */
-/**
- * A library's folders and whether the server reaches them now: what an empty library is told
- * apart by. Asked apart from `LIBRARY_INFO`, and only for an empty library, since each answer
- * looks at the disks.
- */
-export const LIBRARY_ROOTS = gql`
-  query LibraryRoots($id: ID!) {
-    node(id: $id) {
-      id
-      ... on Library {
-        roots {
-          id
-          path
-          reachable
-        }
-      }
-    }
-  }
-`;
-
 export const LIBRARY_SCAN_STATE = gql`
   query LibraryScanState($id: ID!) {
     node(id: $id) {

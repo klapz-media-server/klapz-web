@@ -196,22 +196,12 @@
   color: var(--color-text-default);
 }
 
-.emptyRoots li[data-unreachable] {
-  color: var(--color-alert);
-}
-
 .emptyRootPath {
   flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 13px;
-}
-
-.emptyRootState {
-  flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 700;
 }
 
 .emptyHint {

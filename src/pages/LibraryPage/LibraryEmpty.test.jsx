@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { MockedProvider } from '@apollo/client/testing/react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import i18n from '../../i18n';
-import { LIBRARY_ROOTS, LIBRARY_SCAN_STATE } from '../../graphql/queries';
+import { LIBRARY_SCAN_STATE } from '../../graphql/queries';
 import LibraryEmpty from './LibraryEmpty';
 
 const ID = 'TGlicmFyeToy';
@@ -23,18 +23,11 @@ afterEach(() => {
   container = null;
 });
 
-function mocks({ scanning = false, scannedAt = null, roots = [{ ...ROOT, reachable: true }], rootsError = false } = {}) {
+function mocks({ scanning = false, scannedAt = null } = {}) {
   return [
     {
       request: { query: LIBRARY_SCAN_STATE, variables: { id: ID } },
       result: { data: { node: { __typename: 'Library', id: ID, scanning, scannedAt, scanFailure: null } } },
-      maxUsageCount: Number.POSITIVE_INFINITY,
-    },
-    {
-      request: { query: LIBRARY_ROOTS, variables: { id: ID } },
-      ...(rootsError
-        ? { error: new Error('Unknown field "reachable" on type "Root".') }
-        : { result: { data: { node: { __typename: 'Library', id: ID, roots } } } }),
       maxUsageCount: Number.POSITIVE_INFINITY,
     },
   ];
@@ -79,21 +72,6 @@ describe('LibraryEmpty', () => {
     expect(buttons()).toEqual([]);
   });
 
-  it('tells an owner which folder cannot be reached, with the actions to fix it', async () => {
-    await render({ canEdit: true, owner: true }, { scannedAt: SCANNED, roots: [{ ...ROOT, reachable: false }] });
-    expect(title()).toBe("This folder can't be reached");
-    expect(container.textContent).toContain('/media/films');
-    expect(container.textContent).toContain('Unreachable');
-    expect(buttons()).toEqual(['Try again', 'Edit folders']);
-  });
-
-  it('tells a viewer the library cannot be reached, without paths nor actions', async () => {
-    await render({}, { scannedAt: SCANNED, roots: [{ ...ROOT, reachable: false }] });
-    expect(title()).toBe("This library can't be reached right now");
-    expect(container.textContent).not.toContain('/media/films');
-    expect(buttons()).toEqual([]);
-  });
-
   it('shows an owner the folders that hold nothing, the naming expected and the actions', async () => {
     await render({ canEdit: true, owner: true }, { scannedAt: SCANNED });
     expect(title()).toBe('No media found in these folders');
@@ -121,14 +99,8 @@ describe('LibraryEmpty', () => {
   });
 
   it('offers an owner to add a folder to a library without any', async () => {
-    await render({ canEdit: true, owner: true, roots: [] }, { scannedAt: SCANNED, roots: [] });
+    await render({ canEdit: true, owner: true, roots: [] }, { scannedAt: SCANNED });
     expect(title()).toBe('This library has no folder');
     expect(buttons()).toEqual(['Add a folder']);
-  });
-
-  it('keeps the folders it knows when the server cannot tell whether they are reached', async () => {
-    await render({ canEdit: true, owner: true }, { scannedAt: SCANNED, rootsError: true });
-    expect(title()).toBe('No media found in these folders');
-    expect(container.textContent).toContain('/media/films');
   });
 });
