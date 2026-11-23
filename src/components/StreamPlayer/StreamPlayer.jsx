@@ -12,7 +12,7 @@ import { getStreamProtocol } from '../../utils/streamProtocol';
 import VideoPlayer from '../VideoPlayer/VideoPlayer';
 
 /** What Shaka loads a subtitle served apart as, by the format the server sent it in. */
-const SUBTITLE_MIME = { WEBVTT: 'text/vtt', ASS: 'text/x-ssa', SRT: 'text/srt' };
+const SUBTITLE_MIME = { WEBVTT: 'text/vtt', ASS: 'text/x-ssa', SRT: 'text/srt', TTML: 'application/ttml+xml' };
 
 /**
  * Real playback of an item's file: starts a stream on the server
@@ -115,7 +115,7 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
     [stream?.subtitlesUrl, stream?.protocol, stream?.subtitleFormat, subtitleStream],
   );
 
-  // Subtitles the server cannot deliver (an image track it cannot burn in yet) must not stop
+  // Subtitles the server cannot deliver (a teletext track, say) must not stop
   // the film: it plays on without them. A forced track is chosen by default, so this is common.
   const refusedSubtitle = session.status === 'error' && session.error?.code === 'SUBTITLE_NOT_DELIVERABLE';
 

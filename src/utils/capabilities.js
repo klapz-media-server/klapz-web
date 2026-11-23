@@ -27,9 +27,6 @@ const AUDIO_CODECS = {
   vorbis: 'vorbis',
 };
 
-/** Image subtitles cannot be sent as text: they are burned into the picture. */
-const IMAGE_SUBTITLES = new Set(['pgs', 'hdmv_pgs_subtitle', 'vobsub', 'dvd_subtitle', 'dvdsub', 'dvb_subtitle']);
-
 /** Containers a <video> element reads natively. */
 const NATIVE_CONTAINERS = { mp4: 'video/mp4', m4v: 'video/mp4', mov: 'video/mp4', webm: 'video/webm' };
 
@@ -55,10 +52,6 @@ export function canDecodeVideo(codec) {
 export function canDecodeAudio(codec) {
   const id = AUDIO_CODECS[codec?.toLowerCase()];
   return !!id && mseSupports(`audio/mp4; codecs="${id}"`);
-}
-
-export function isImageSubtitle(codec) {
-  return IMAGE_SUBTITLES.has(codec?.toLowerCase());
 }
 
 /** The MIME type to play the original file with, or null when it cannot be played as is. */

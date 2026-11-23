@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useApolloClient } from '@apollo/client/react';
 import { START_STREAM, STOP_STREAM } from '../graphql/mutations';
 import { serverUrl } from '../servers/serverStore';
-import { canDecodeAudio, canDecodeVideo, directPlayMime, isImageSubtitle } from '../utils/capabilities';
+import { canDecodeAudio, canDecodeVideo, directPlayMime } from '../utils/capabilities';
 import { sendBeacon } from '../utils/gqlBeacon';
 import { copyableVideoCodecs, manifestMime } from '../utils/streamProtocol';
 
@@ -20,7 +20,7 @@ const CLIENT_IDENTIFIER = (() => {
 
 let counter = 0;
 
-const SUBTITLE_FORMATS = ['WEBVTT', 'ASS'];
+const SUBTITLE_FORMATS = ['WEBVTT', 'ASS', 'TTML'];
 
 /**
  * The startStream input for a request, and what the browser will play.
@@ -44,7 +44,6 @@ export function buildStreamInput({ file, version, request, playbackId, key }) {
 
   const protocol = request.protocol === 'HLS' ? 'HLS' : 'DASH';
   const copyable = copyableVideoCodecs(protocol).filter(canDecodeVideo);
-  const subtitles = !subtitle ? 'NONE' : isImageSubtitle(subtitle.codec) ? 'BURN' : 'TEXT';
 
   return {
     mime,
@@ -56,8 +55,9 @@ export function buildStreamInput({ file, version, request, playbackId, key }) {
       protocol,
       audioTrack: audio?.id ?? null,
       subtitleTrack: subtitle?.id ?? null,
-      subtitles,
-      // Shaka draws both; an ASS subtitle stays ASS, any other text comes as WebVTT.
+      subtitles: subtitle ? 'TEXT' : 'NONE',
+      // Shaka draws all three: an ASS subtitle stays ASS, any other text comes as WebVTT, and
+      // pictures (PGS, DVD, DVB) come as TTML, drawn over the video rather than burned in.
       subtitleFormats: SUBTITLE_FORMATS,
       subtitleScale: 1,
       maxVideoBitrate: typeof request.quality === 'number' ? request.quality : null,

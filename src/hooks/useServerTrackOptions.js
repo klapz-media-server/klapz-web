@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { canDecodeAudio, isImageSubtitle } from '../utils/capabilities';
+import { canDecodeAudio } from '../utils/capabilities';
 import { channelsLabel, formatBitrate, languageLabel } from '../utils/format';
 
 /** Video bitrate caps offered below the source's, in bits per second. */
@@ -62,7 +62,6 @@ export function useServerTrackOptions({ file, version, request, onChange, canDir
           trackTitle(s),
           s.isForced ? t('Forced') : null,
           s.codec?.toUpperCase(),
-          isImageSubtitle(s.codec) ? t('burned in (transcode)') : null,
         ]
           .filter(Boolean)
           .join(' · '),
