@@ -57,8 +57,10 @@
   font-weight: 600 !important;
 }
 
-/* one box per line, like the Plex player */
-.captions :global(.shaka-text-container) span {
+/* One box per line, like the Plex player. Shaka also nests regions, wrappers
+   and picture cues (PGS as TTML) in spans: boxing those too stacks the
+   background behind the text, and paints over the picture. */
+.captions :global(.shaka-text-container) span:not(:global(.shaka-text-region)):not(:global(.shaka-text-wrapper)):not([style*='background-image']) {
   padding: 0.06em 0.45em;
   border-radius: 4px;
   background-color: rgba(0, 0, 0, 0.62) !important;
