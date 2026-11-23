@@ -9,7 +9,7 @@
  * A decision is `{ video, audio, container, speed }`, where `video` and
  * `audio` are the GraphQL `StreamDecisionType` (COPY | TRANSCODE),
  * `container` is COPY | REMUX, and `speed` the transcoder speed as a
- * multiple of real time (null when unknown). `subtitle`, when one plays, is
+ * multiple of real time (null when unknown). `subtitle`, when one shows, is
  * `{ decision, format, codec }`: COPY | TRANSCODE, the format it is sent in
  * (null when burned in), and the source track's codec.
  */
@@ -21,7 +21,10 @@ export function playbackMode(decision) {
   return 'DIRECT_PLAY';
 }
 
-/** From startStream's `StreamObject` and the subtitle track asked for. Only direct play keeps the container. */
+/**
+ * From startStream's `StreamObject` and the subtitle track shown: one of the stream's
+ * `subtitleFiles`, else the one it was started with. Only direct play keeps the container.
+ */
 export function decisionFromStream(stream, subtitleTrack = null) {
   if (!stream) return null;
   return {
@@ -36,10 +39,16 @@ export function decisionFromStream(stream, subtitleTrack = null) {
     width: stream.width,
     height: stream.height,
     videoBitrate: stream.videoBitrate,
-    subtitle: stream.subtitleDecision
-      ? { decision: stream.subtitleDecision, format: stream.subtitleFormat ?? null, codec: subtitleTrack?.codec ?? null }
-      : null,
+    subtitle: subtitleDecision(stream, subtitleTrack),
   };
+}
+
+function subtitleDecision(stream, track) {
+  if (!track) return null;
+  const file = stream.subtitleFiles?.find((f) => f.track === track.id);
+  if (file) return { decision: file.decision, format: file.format, codec: track.codec ?? null };
+  if (!stream.subtitleDecision) return null;
+  return { decision: stream.subtitleDecision, format: stream.subtitleFormat ?? null, codec: track.codec ?? null };
 }
 
 /**

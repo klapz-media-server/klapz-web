@@ -126,6 +126,7 @@ export function useStreamSession({ file, version, request, playbackId }) {
             ...payload.stream,
             url: serverUrl(payload.stream.url),
             subtitlesUrl: serverUrl(payload.stream.subtitlesUrl),
+            subtitleFiles: (payload.stream.subtitleFiles ?? []).map((f) => ({ ...f, url: serverUrl(f.url) })),
           },
           session: payload.session,
           mime: loadMime,

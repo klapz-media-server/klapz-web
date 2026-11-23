@@ -32,6 +32,17 @@ describe('decisionFromStream', () => {
     expect(decisionFromStream(stream, { codec: 'pgs' }).subtitle).toEqual({ decision: 'TRANSCODE', format: 'TTML', codec: 'pgs' });
     expect(decisionFromStream({ delivery: 'DIRECT_STREAM', subtitleDecision: null }).subtitle).toBeNull();
   });
+
+  it('follows the subtitle shown among the files served beside the stream', () => {
+    const stream = {
+      delivery: 'DIRECT_STREAM',
+      subtitleDecision: 'TRANSCODE',
+      subtitleFormat: 'WEBVTT',
+      subtitleFiles: [{ track: 'ass', url: '/s/3.ass', format: 'ASS', decision: 'COPY' }],
+    };
+    expect(decisionFromStream(stream, { id: 'ass', codec: 'ass' }).subtitle).toEqual({ decision: 'COPY', format: 'ASS', codec: 'ass' });
+    expect(decisionFromStream(stream, null).subtitle).toBeNull();
+  });
 });
 
 describe('withManifestDelivery', () => {

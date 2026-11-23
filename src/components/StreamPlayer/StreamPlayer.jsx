@@ -16,8 +16,8 @@ const SUBTITLE_MIME = { WEBVTT: 'text/vtt', ASS: 'text/x-ssa', SRT: 'text/srt', 
 
 /**
  * Real playback of an item's file: starts a stream on the server
- * (`startStream`), restarts it at the current position when a track or the
- * quality changes, reports the position (`reportPlayback`, `reportViewing`)
+ * (`startStream`), restarts it at the current position when the audio, the
+ * quality or a subtitle it does not serve changes, reports the position (`reportPlayback`, `reportViewing`)
  * and stops it on the way out (`stopStream`).
  */
 export default function StreamPlayer({ item, version, file, title, subtitle, posterItem, onBack, startMs = 0 }) {
@@ -47,13 +47,48 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
   const session = useStreamSession({ file, version, request, playbackId });
   const stream = session.stream;
 
-  const change = useCallback(
-    (patch) => setRequest((r) => ({ ...r, ...patch, positionMs: Math.round(positionRef.current * 1000) })),
-    [],
+  // The subtitle shown, which a new stream starts with.
+  const [subtitleId, setSubtitleId] = useState(request.subtitleId);
+  const subtitleRef = useRef(subtitleId);
+  subtitleRef.current = subtitleId;
+
+  const change = useCallback((patch) => {
+    if ('subtitleId' in patch) setSubtitleId(patch.subtitleId);
+    setRequest((r) => ({
+      ...r,
+      subtitleId: subtitleRef.current,
+      ...patch,
+      positionMs: Math.round(positionRef.current * 1000),
+    }));
+  }, []);
+
+  // A track the conversion serves beside it, or none, is switched in the player; any other
+  // (a sidecar, or any track during direct play) takes a new stream.
+  const startedSubtitleId = session.subtitle?.id ?? null;
+  const chooseSubtitle = useCallback(
+    (id) => {
+      const served =
+        !!stream &&
+        stream.delivery !== 'DIRECT_PLAY' &&
+        (id === null || id === startedSubtitleId || stream.subtitleFiles?.some((f) => f.track === id));
+      if (served) setSubtitleId(id);
+      else change({ subtitleId: id });
+    },
+    [stream, startedSubtitleId, change],
+  );
+  const onTrackChange = useCallback(
+    (patch) => ('subtitleId' in patch ? chooseSubtitle(patch.subtitleId) : change(patch)),
+    [chooseSubtitle, change],
   );
 
   const canDirectPlay = !!directPlayMime(version);
-  const serverOptions = useServerTrackOptions({ file, version, request, onChange: change, canDirectPlay });
+  const serverOptions = useServerTrackOptions({
+    file,
+    version,
+    request: { ...request, subtitleId },
+    onChange: onTrackChange,
+    canDirectPlay,
+  });
   // The qualities of an adaptive stream are the player's to choose: VideoPlayer lists them.
   const adaptive = session.input?.quality === 'CLIENT_ADAPTIVE' && stream?.delivery !== 'DIRECT_PLAY';
   const trackOptions = useMemo(() => ({ ...serverOptions, adaptive }), [serverOptions, adaptive]);
@@ -100,20 +135,19 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
   }, [item.id, playbackId]);
 
   // ---- what VideoPlayer loads
-  const subtitleStream = session.subtitle;
-  // A DASH manifest lists the subtitle itself; over HLS it is loaded apart.
-  const textTrack = useMemo(
-    () =>
-      stream?.subtitlesUrl
-        ? {
-            url: stream.protocol === 'DASH' ? null : stream.subtitlesUrl,
-            mimeType: SUBTITLE_MIME[stream.subtitleFormat],
-            language: subtitleStream?.language,
-            label: subtitleStream?.title || languageLabel(subtitleStream?.language),
-          }
-        : null,
-    [stream?.subtitlesUrl, stream?.protocol, stream?.subtitleFormat, subtitleStream],
-  );
+  const subtitleStream = streams.find((s) => s.id === subtitleId) ?? null;
+  const textTrack = useMemo(() => {
+    if (!stream || !subtitleStream) return null;
+    const language = subtitleStream.language;
+    const label = subtitleStream.title || languageLabel(language);
+    // The one the stream started with: a DASH manifest lists it, over HLS it is loaded apart.
+    if (subtitleStream.id === startedSubtitleId && stream.subtitlesUrl) {
+      const url = stream.protocol === 'DASH' ? null : stream.subtitlesUrl;
+      return { url, mimeType: SUBTITLE_MIME[stream.subtitleFormat], language, label };
+    }
+    const served = stream.subtitleFiles?.find((f) => f.track === subtitleStream.id);
+    return served ? { url: served.url, mimeType: SUBTITLE_MIME[served.format], language, label } : null;
+  }, [stream, subtitleStream, startedSubtitleId]);
 
   // Subtitles the server cannot deliver (a teletext track, say) must not stop
   // the film: it plays on without them. A forced track is chosen by default, so this is common.

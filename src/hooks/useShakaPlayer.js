@@ -62,7 +62,8 @@ function readTracks(player, videoDeliveryOf) {
  * `options` (read when `src` changes): `startTime` in seconds, `mimeType`
  * for a file played as is, `textTrack` `{ url, mimeType, language, label }` —
  * the subtitle chosen, shown as soon as it is loaded: a file served beside the
- * stream when it has a `url`, else the text track the manifest lists.
+ * stream when it has a `url`, else the text track the manifest lists. A change
+ * of `textTrack` alone switches the subtitle without loading `src` again.
  */
 export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
   const optionsRef = useRef(options);
@@ -82,6 +83,42 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
   const [activeQuality, setActiveQuality] = useState(null);
   // `{ video, audio }`, each 'remux' or 'transcode', from the manifest; null without the tags.
   const [activeDelivery, setActiveDelivery] = useState(null);
+  // The subtitle files added to the current player, by URL, so a switch back reuses them.
+  const addedTextRef = useRef(new Map());
+  // Each switch counts: one overtaken while its file loads does not select it.
+  const textSwitchRef = useRef(0);
+
+  const showTextTrack = useCallback(async (player, textTrack) => {
+    const turn = ++textSwitchRef.current;
+    if (!textTrack) {
+      // Subtitles start off, like Plex; the user picks a track.
+      player.selectTextTrack(null);
+      return;
+    }
+    if (!textTrack.url) {
+      const added = new Set([...addedTextRef.current.values()].map((track) => track.id));
+      const listed = player.getTextTracks().find((track) => !added.has(track.id));
+      player.selectTextTrack(listed ?? null);
+      return;
+    }
+    let track = addedTextRef.current.get(textTrack.url);
+    if (!track) {
+      try {
+        track = await player.addTextTrackAsync(
+          textTrack.url,
+          textTrack.language || 'und',
+          'subtitles',
+          textTrack.mimeType,
+          undefined,
+          textTrack.label,
+        );
+      } catch {
+        return; /* the video still plays without its subtitles */
+      }
+      addedTextRef.current.set(textTrack.url, track);
+    }
+    if (turn === textSwitchRef.current && playerRef.current === player) player.selectTextTrack(track);
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -250,6 +287,7 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
     setTracks(EMPTY_TRACKS);
     setAbr(true);
     setActiveDelivery(null);
+    addedTextRef.current = new Map();
 
     const { startTime, mimeType, textTrack } = optionsRef.current;
     destroyedRef.current
@@ -262,27 +300,7 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
       .then(async () => {
         if (cancelled) return;
         startOnRemux();
-        if (textTrack?.url) {
-          try {
-            const track = await player.addTextTrackAsync(
-              textTrack.url,
-              textTrack.language || 'und',
-              'subtitles',
-              textTrack.mimeType,
-              undefined,
-              textTrack.label,
-            );
-            if (!cancelled) player.selectTextTrack(track);
-          } catch {
-            /* the video still plays without its subtitles */
-          }
-        } else if (textTrack) {
-          const [listed] = player.getTextTracks();
-          player.selectTextTrack(listed ?? null);
-        } else {
-          // Subtitles start off, like Plex; the user picks a track.
-          player.selectTextTrack(null);
-        }
+        await showTextTrack(player, textTrack);
         if (cancelled) return;
         refresh();
         setStatus('ready');
@@ -298,7 +316,15 @@ export function useShakaPlayer(videoRef, src, captionsRef, options = {}) {
       playerRef.current = null;
       destroyedRef.current = player.destroy();
     };
-  }, [videoRef, src, captionsRef]);
+  }, [videoRef, src, captionsRef, showTextTrack]);
+
+  // Another subtitle for the same stream: switched in the player, the stream left as it is.
+  const textTrack = options.textTrack;
+  const textKey = textTrack ? (textTrack.url ?? 'listed') : null;
+  useEffect(() => {
+    const player = playerRef.current;
+    if (player && status === 'ready') showTextTrack(player, optionsRef.current.textTrack);
+  }, [status, textKey, showTextTrack]);
 
   const selectAudio = useCallback((track) => {
     playerRef.current?.selectAudioTrack(track);
