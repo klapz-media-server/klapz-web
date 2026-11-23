@@ -27,7 +27,25 @@ function mocks({ scanning = false, scannedAt = null } = {}) {
   return [
     {
       request: { query: LIBRARY_SCAN_STATE, variables: { id: ID } },
-      result: { data: { node: { __typename: 'Library', id: ID, scanning, scannedAt, scanFailure: null } } },
+      result: {
+        data: {
+          node: {
+            __typename: 'Library',
+            id: ID,
+            scanning,
+            scannedAt,
+            scanFailure: null,
+            analysis: {
+              __typename: 'LibraryAnalysis',
+              fileCount: 0,
+              readFileCount: 0,
+              completeFileCount: 0,
+              reading: false,
+              failure: null,
+            },
+          },
+        },
+      },
       maxUsageCount: Number.POSITIVE_INFINITY,
     },
   ];

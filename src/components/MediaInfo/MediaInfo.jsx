@@ -66,6 +66,8 @@ export default function MediaInfo({ versions, title }) {
             ],
             [t('Duration'), formatDuration(version.durationMs)],
             [t('File'), [version.container?.toUpperCase(), formatBytes(size), formatBitrate(version.bitrate)].filter(Boolean).join(' · ')],
+            // A file a scan listed is read afterwards: until then, nothing above is known of it.
+            [t('Status'), files.some((f) => f.analysis === 'PENDING') ? t('Not read by the server yet') : null],
           ].filter(([, v]) => v);
 
           return (
