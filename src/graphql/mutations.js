@@ -34,6 +34,7 @@ export const START_STREAM = gql`
         url
         subtitlesUrl
         subtitleFormat
+        subtitleDecision
         videoBitrate
         audioBitrate
         width

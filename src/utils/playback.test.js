@@ -26,6 +26,12 @@ describe('decisionFromStream', () => {
     expect(decisionFromStream({ delivery: 'TRANSCODE', protocol: 'HLS' }).protocol).toBe('HLS');
     expect(decisionFromStream({ delivery: 'DIRECT_PLAY', protocol: null }).protocol).toBeNull();
   });
+
+  it('carries what happens to the subtitle, with its source codec', () => {
+    const stream = { delivery: 'DIRECT_STREAM', subtitleDecision: 'TRANSCODE', subtitleFormat: 'TTML' };
+    expect(decisionFromStream(stream, { codec: 'pgs' }).subtitle).toEqual({ decision: 'TRANSCODE', format: 'TTML', codec: 'pgs' });
+    expect(decisionFromStream({ delivery: 'DIRECT_STREAM', subtitleDecision: null }).subtitle).toBeNull();
+  });
 });
 
 describe('withManifestDelivery', () => {

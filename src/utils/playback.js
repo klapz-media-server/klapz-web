@@ -9,7 +9,9 @@
  * A decision is `{ video, audio, container, speed }`, where `video` and
  * `audio` are the GraphQL `StreamDecisionType` (COPY | TRANSCODE),
  * `container` is COPY | REMUX, and `speed` the transcoder speed as a
- * multiple of real time (null when unknown).
+ * multiple of real time (null when unknown). `subtitle`, when one plays, is
+ * `{ decision, format, codec }`: COPY | TRANSCODE, the format it is sent in
+ * (null when burned in), and the source track's codec.
  */
 export function playbackMode(decision) {
   if (!decision) return null;
@@ -19,8 +21,8 @@ export function playbackMode(decision) {
   return 'DIRECT_PLAY';
 }
 
-/** From startStream's `StreamObject`. Only direct play keeps the container. */
-export function decisionFromStream(stream) {
+/** From startStream's `StreamObject` and the subtitle track asked for. Only direct play keeps the container. */
+export function decisionFromStream(stream, subtitleTrack = null) {
   if (!stream) return null;
   return {
     delivery: stream.delivery,
@@ -34,6 +36,9 @@ export function decisionFromStream(stream) {
     width: stream.width,
     height: stream.height,
     videoBitrate: stream.videoBitrate,
+    subtitle: stream.subtitleDecision
+      ? { decision: stream.subtitleDecision, format: stream.subtitleFormat ?? null, codec: subtitleTrack?.codec ?? null }
+      : null,
   };
 }
 

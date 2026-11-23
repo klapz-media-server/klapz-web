@@ -362,7 +362,6 @@
   "Remove this folder": "Remove this folder",
   "Removed from the library": "Removed from the library",
   "Remux": "Remux",
-  "Remuxed": "Remuxed",
   "Replay": "Replay",
   "Reserved for the owners of the server": "Reserved for the owners of the server",
   "Reset the password": "Reset the password",
@@ -464,7 +463,6 @@
   "The server refused the request.": "The server refused the request.",
   "The server transcodes slower than real time: playback may stall.": "The server transcodes slower than real time: playback may stall.",
   "The two passwords differ.": "The two passwords differ.",
-  "The video is copied as is; only the container or the audio is converted.": "The video is copied as is; only the container or the audio is converted.",
   "Their library access and Plex connection are removed too. This cannot be undone.": "Their library access and Plex connection are removed too. This cannot be undone.",
   "There is no file to play for this item.": "There is no file to play for this item.",
   "These subtitles cannot be shown.": "These subtitles cannot be shown.",
@@ -542,5 +540,6 @@
   "Your libraries": "Your libraries",
   "Your libraries are being scanned": "Your libraries are being scanned",
   "Your libraries are empty": "Your libraries are empty",
-  "Your server identifier": "Your server identifier"
+  "Your server identifier": "Your server identifier",
+  "In the picture": "In the picture"
 }

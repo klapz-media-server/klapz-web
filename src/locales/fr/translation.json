@@ -362,7 +362,6 @@
   "Remove this folder": "Retirer ce dossier",
   "Removed from the library": "Retiré de la bibliothèque",
   "Remux": "Remux",
-  "Remuxed": "Remuxé",
   "Replay": "Revoir",
   "Reserved for the owners of the server": "Réservé aux propriétaires du serveur",
   "Reset the password": "Réinitialiser le mot de passe",
@@ -464,7 +463,6 @@
   "The server refused the request.": "Le serveur a refusé la demande.",
   "The server transcodes slower than real time: playback may stall.": "Le serveur transcode plus lentement que le temps réel : la lecture peut se bloquer.",
   "The two passwords differ.": "Les deux mots de passe sont différents.",
-  "The video is copied as is; only the container or the audio is converted.": "La vidéo est copiée telle quelle ; seuls le conteneur ou l’audio sont convertis.",
   "Their library access and Plex connection are removed too. This cannot be undone.": "Ses accès aux bibliothèques et sa connexion Plex sont supprimés aussi. C’est définitif.",
   "There is no file to play for this item.": "Aucun fichier à lire pour cet élément.",
   "These subtitles cannot be shown.": "Ces sous-titres ne peuvent pas être affichés.",
@@ -542,5 +540,6 @@
   "Your libraries": "Vos bibliothèques",
   "Your libraries are being scanned": "Vos bibliothèques sont en cours d’analyse",
   "Your libraries are empty": "Vos bibliothèques sont vides",
-  "Your server identifier": "Identifiant de votre serveur"
+  "Your server identifier": "Identifiant de votre serveur",
+  "In the picture": "Dans l’image"
 }

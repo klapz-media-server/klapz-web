@@ -2,12 +2,14 @@ import { useTranslation } from 'react-i18next';
 import { locale } from '../../i18n';
 import { channelsLabel, formatBitrate, resolutionLabel } from '../../utils/format';
 import { playbackMode } from '../../utils/playback';
-import StreamBadge, { formatSpeed } from '../StreamBadge/StreamBadge';
+import { formatSpeed } from '../StreamBadge/StreamBadge';
 import styles from './PlaybackInfo.module.css';
 
 const codecName = (codecs) => codecs?.split('.')[0]?.toUpperCase() ?? null;
 const kbps = (bps) => (bps ? formatBitrate(Math.round(bps / 1000)) : null);
 const join = (...parts) => parts.filter(Boolean).join(' · ') || '—';
+const SUBTITLE_CODECS = { subrip: 'SRT', hdmv_pgs_subtitle: 'PGS', dvd_subtitle: 'VOBSUB', dvb_subtitle: 'DVB', mov_text: 'TX3G' };
+const subtitleCodecName = (codec) => (codec ? (SUBTITLE_CODECS[codec] ?? codec.toUpperCase()) : null);
 
 function Status({ converted, label }) {
   return (
@@ -18,8 +20,8 @@ function Status({ converted, label }) {
 }
 
 /**
- * "Info" tab of the player settings: what the server does with each stream
- * (source → delivered, copied or converted), transcoder speed, and live
+ * "Info" tab of the player settings: what the server does with each stream,
+ * subtitles included (source → delivered, copied or converted), transcoder speed, and live
  * playback stats from Shaka.
  */
 export default function PlaybackInfo({ decision, source, live }) {
@@ -30,18 +32,16 @@ export default function PlaybackInfo({ decision, source, live }) {
 
   const explanations = {
     DIRECT_PLAY: t('The file is sent as is: nothing is converted.'),
-    DIRECT_STREAM: t('The video is copied as is; only the container or the audio is converted.'),
     TRANSCODE: t('The server converts the video while you watch.'),
   };
   const status = (value) =>
-    value === 'TRANSCODE' ? (
+    value === 'TRANSCODE' || value === 'REMUX' ? (
       <Status converted label={t('Converted')} />
-    ) : value === 'REMUX' ? (
-      <Status converted label={t('Remuxed')} />
     ) : (
       <Status label={t('Copied')} />
     );
 
+  const subtitle = decision?.subtitle;
   const rows = [
     {
       key: 'video',
@@ -57,6 +57,14 @@ export default function PlaybackInfo({ decision, source, live }) {
       to: join(codecName(variant?.audioCodec), channelsLabel(variant?.channelsCount)),
       status: status(decision?.audio),
     },
+    subtitle && {
+      key: 'subtitle',
+      label: t('Subtitles'),
+      from: subtitleCodecName(subtitle.codec) ?? '—',
+      // No format: drawn into the picture rather than sent beside it.
+      to: subtitle.format ?? t('In the picture'),
+      status: status(subtitle.decision),
+    },
     {
       key: 'container',
       label: t('Container'),
@@ -66,16 +74,15 @@ export default function PlaybackInfo({ decision, source, live }) {
         (decision?.container === 'COPY' ? (source?.container?.toUpperCase() ?? '—') : 'DASH'),
       status: status(decision?.container),
     },
-  ];
+  ].filter(Boolean);
 
   const converting = decision?.video === 'TRANSCODE' || decision?.audio === 'TRANSCODE';
   const speed = decision?.speed;
 
   return (
     <div className={styles.info}>
-      {mode && (
+      {explanations[mode] && (
         <div className={styles.mode}>
-          <StreamBadge decision={decision} size="sm" />
           <p className={styles.explain}>{explanations[mode]}</p>
         </div>
       )}

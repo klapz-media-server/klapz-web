@@ -154,7 +154,7 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
       subtitle={subtitle}
       posterItem={posterItem}
       onBack={onBack}
-      decision={decisionFromStream(stream)}
+      decision={decisionFromStream(stream, subtitleStream)}
       source={version}
       trackOptions={trackOptions}
       preparing={session.status === 'starting'}
