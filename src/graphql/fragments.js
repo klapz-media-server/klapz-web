@@ -148,10 +148,12 @@ export const VERSION_FIELDS = gql`
     bitrate
     container
     frameRate
+    durationMs
     files {
       id
       filename
       sizeBytes
+      analysis
       streams {
         id
         kind

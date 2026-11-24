@@ -760,7 +760,7 @@ export const PLAYBACK_SESSIONS = gql`
   ${CARD_FIELDS}
 `;
 
-/** Whether a library is being scanned, asked again while it is. */
+/** Whether a library is being scanned, and how far its files are read; asked again meanwhile. */
 export const LIBRARY_SCAN_STATE = gql`
   query LibraryScanState($id: ID!) {
     node(id: $id) {
@@ -769,6 +769,13 @@ export const LIBRARY_SCAN_STATE = gql`
         scanning
         scannedAt
         scanFailure
+        analysis {
+          fileCount
+          readFileCount
+          completeFileCount
+          reading
+          failure
+        }
       }
     }
   }
