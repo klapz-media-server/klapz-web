@@ -27,15 +27,16 @@ const signedSquare = (value) => Math.sign(value) * value * value;
 
 /**
  * The RGBA pixels of a `width` × `height` picture of `hash`, or null for something that is no
- * BlurHash.
+ * BlurHash. `punch` (the reference decoder's) scales the colour variations around the average:
+ * above 1 the picture's colours stand further apart.
  */
-export function decodeBlurHash(hash, width, height) {
+export function decodeBlurHash(hash, width, height, punch = 1) {
   if (typeof hash !== 'string' || hash.length < 6) return null;
   const size = decode83(hash[0]);
   const rows = Math.floor(size / 9) + 1;
   const columns = (size % 9) + 1;
   if (hash.length !== 4 + 2 * columns * rows) return null;
-  const maximum = (decode83(hash[1]) + 1) / 166;
+  const maximum = ((decode83(hash[1]) + 1) / 166) * punch;
 
   const colors = [];
   for (let i = 0; i < columns * rows; i++) {
@@ -77,14 +78,18 @@ export function decodeBlurHash(hash, width, height) {
 // A preview is the same for every card showing one image: drawn once.
 const drawn = new Map();
 
-/** A data URL of `hash`'s preview, to set as a CSS background; null when none can be drawn. */
-export function blurHashDataUrl(hash) {
+/**
+ * A data URL of `hash`'s preview, to set as a CSS background; null when none can be drawn.
+ * `punch` as for decodeBlurHash.
+ */
+export function blurHashDataUrl(hash, punch = 1) {
   if (!hash) return null;
-  if (drawn.has(hash)) return drawn.get(hash);
+  const key = punch === 1 ? hash : `${hash}@${punch}`;
+  if (drawn.has(key)) return drawn.get(key);
   let url = null;
   try {
     const side = 32;
-    const pixels = decodeBlurHash(hash, side, side);
+    const pixels = decodeBlurHash(hash, side, side, punch);
     const canvas = document.createElement('canvas');
     canvas.width = side;
     canvas.height = side;
@@ -96,6 +101,6 @@ export function blurHashDataUrl(hash) {
   } catch {
     url = null;
   }
-  drawn.set(hash, url);
+  drawn.set(key, url);
   return url;
 }

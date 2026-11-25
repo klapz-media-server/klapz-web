@@ -24,7 +24,8 @@
   z-index: 1;
   background-size: cover;
   background-position: center;
-  filter: blur(70px) saturate(1.3) brightness(0.55);
+  /* the preview is already smooth: a light blur keeps its colours apart */
+  filter: blur(40px) saturate(2.1) brightness(0.55);
   transform: scale(1.1);
   opacity: 0;
   transition: opacity 0.8s var(--ease);

@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { artworkUrl, previewFor } from '../../utils/artwork';
 import styles from './Backdrop.module.css';
 
+/** Spread wide and dimmed behind the page, a preview's colours need a push to still read. */
+const PUNCH = 2.2;
+
 /**
  * Page background for detail pages: a heavily blurred copy of the artwork
  * for the ambient color (Plex's "ultrablur") and the sharp artwork in the
@@ -11,7 +14,7 @@ export default function Backdrop({ item }) {
   const sharp = artworkUrl(item, 'background', 'background');
   // The preview's few colours are the ambient blur already, with nothing more to fetch, and
   // shown at once: the sharp image fades in over it.
-  const preview = previewFor(item, 'background');
+  const preview = previewFor(item, 'background', PUNCH);
   const ambient = preview ?? artworkUrl(item, 'background', 'backgroundSmall');
   const [loaded, setLoaded] = useState(false);
   const [prev, setPrev] = useState(sharp);

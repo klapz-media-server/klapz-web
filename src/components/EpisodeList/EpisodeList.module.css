@@ -19,7 +19,7 @@
 
 .row:hover,
 .row:target {
-  background: rgba(242, 196, 126, 0.05);
+  background: rgba(247, 187, 89, 0.05);
 }
 
 .row:target {

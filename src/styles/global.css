@@ -1,12 +1,12 @@
 :root {
   color-scheme: dark;
 
-  /* palette — Bordeaux grenat #8C1D2E × Sable doré #F2C47E
+  /* palette — Bordeaux grenat #8C1D2E × Sable doré #F7BB59
      (evolved from the brand Bordeaux Velours #6A1A24 and Sable #E3CBA8:
      more saturated so they glow on the dark wine background) */
   --color-wine: #8c1d2e;
   --color-wine-deep: #4a0f1a;
-  --color-sand: #f2c47e;
+  --color-sand: #f7bb59;
 
   --color-bg: #160a0d;
   --color-bg-elevated: #261218;
@@ -14,7 +14,7 @@
   --color-modal: #1d0d12;
   --color-surface-glass: rgba(24, 12, 15, 0.92);
   --color-accent: var(--color-sand);
-  --color-accent-hover: #f8d69c;
+  --color-accent-hover: #facc80;
   --color-accent-soft: color-mix(in srgb, var(--color-accent) 14%, transparent);
   --color-accent-line: color-mix(in srgb, var(--color-accent) 45%, transparent);
   --color-on-accent: #5c1220;
@@ -22,10 +22,10 @@
   --color-text-default: rgba(251, 245, 236, 0.82);
   --color-text-muted: rgba(251, 245, 236, 0.6);
   --color-text-faint: rgba(251, 245, 236, 0.4);
-  --color-control: rgba(242, 196, 126, 0.09);
-  --color-control-hover: rgba(242, 196, 126, 0.16);
-  --color-control-active: rgba(242, 196, 126, 0.24);
-  --color-border: rgba(242, 196, 126, 0.12);
+  --color-control: rgba(247, 187, 89, 0.09);
+  --color-control-hover: rgba(247, 187, 89, 0.16);
+  --color-control-active: rgba(247, 187, 89, 0.24);
+  --color-border: rgba(247, 187, 89, 0.12);
   --color-card: rgba(10, 4, 6, 0.35);
   --color-focus: var(--color-sand);
   --color-success: #8cc2a0;
@@ -147,5 +147,5 @@ p {
 /* thin sand-tinted scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(242, 196, 126, 0.22) transparent;
+  scrollbar-color: rgba(247, 187, 89, 0.22) transparent;
 }

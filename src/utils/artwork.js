@@ -48,9 +48,12 @@ export function imageFor(source, type = 'poster') {
   return null;
 }
 
-/** A data URL of the blurred preview to show while `source`'s image of `type` loads. */
-export function previewFor(source, type = 'poster') {
-  return blurHashDataUrl(imageFor(source, type)?.blurHash);
+/**
+ * A data URL of the blurred preview to show while `source`'s image of `type` loads. `punch`
+ * above 1 makes its colours stand further apart (see blurHashDataUrl).
+ */
+export function previewFor(source, type = 'poster', punch = 1) {
+  return blurHashDataUrl(imageFor(source, type)?.blurHash, punch);
 }
 
 export function artworkUrl(source, type = 'poster', size = type) {
