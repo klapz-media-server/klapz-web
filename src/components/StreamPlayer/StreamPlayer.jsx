@@ -160,6 +160,7 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
     VIDEO_NOT_CONVERTIBLE: t('The server cannot convert this video.'),
     SUBTITLE_NOT_DELIVERABLE: t('These subtitles cannot be shown.'),
     TOO_MANY_STREAMS: t('Too many streams are running on the server.'),
+    NOT_ANALYZED: t('The server has not been able to read this file yet. Try again in a moment.'),
   };
   const error =
     session.status === 'error' && !(refusedSubtitle && request.subtitleId)
