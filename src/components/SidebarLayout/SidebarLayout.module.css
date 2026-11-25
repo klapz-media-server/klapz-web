@@ -47,13 +47,13 @@
 }
 
 .navLink:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
+  background: rgba(242, 196, 126, 0.05);
+  color: var(--color-text-primary);
 }
 
 .navLink[aria-current='page'] {
   background: var(--color-control);
-  color: #fff;
+  color: var(--color-text-primary);
 }
 
 .navLink[aria-current='page'] svg {

@@ -54,6 +54,6 @@
 }
 
 .tag[data-active] {
-  background: #fff;
-  color: #000;
+  background: var(--color-text-primary);
+  color: var(--color-wine-deep);
 }

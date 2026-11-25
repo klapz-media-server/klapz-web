@@ -18,8 +18,8 @@
 
 .form[data-expanded] {
   width: 320px;
-  background: rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  background: rgba(242, 196, 126, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(242, 196, 126, 0.2);
 }
 
 .icon {
@@ -70,7 +70,7 @@
 }
 
 .clear:hover {
-  color: #fff;
+  color: var(--color-text-primary);
   background: var(--color-control);
 }
 
@@ -96,6 +96,6 @@
     right: var(--gutter);
     width: auto;
     z-index: 5;
-    background: #2a2a2a;
+    background: var(--color-bg-elevated);
   }
 }

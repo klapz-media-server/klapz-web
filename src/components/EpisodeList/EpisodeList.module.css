@@ -19,11 +19,11 @@
 
 .row:hover,
 .row:target {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(242, 196, 126, 0.05);
 }
 
 .row:target {
-  box-shadow: inset 0 0 0 1px rgba(229, 160, 13, 0.5);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 50%, transparent);
 }
 
 .thumb {
@@ -111,7 +111,7 @@
 
 .watched:hover {
   background: var(--color-control-active);
-  color: #fff;
+  color: var(--color-text-primary);
 }
 
 .watched[data-watched] {

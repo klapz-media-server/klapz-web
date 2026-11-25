@@ -11,14 +11,14 @@
   display: inline-flex;
   align-items: center;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(242, 196, 126, 0.08);
   color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 800;
 }
 
 .badge[data-on] {
-  background: rgba(77, 178, 136, 0.16);
+  background: color-mix(in srgb, var(--color-success) 16%, transparent);
   color: var(--color-success);
 }
 
@@ -35,7 +35,7 @@
   margin-bottom: 14px;
   padding: 10px 14px;
   border-radius: var(--radius-md);
-  background: rgba(229, 160, 13, 0.12);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
   color: var(--color-accent);
   font-size: 14px;
   line-height: 1.5;
@@ -55,8 +55,8 @@
   margin-bottom: 14px;
   padding: 10px 14px;
   border-radius: var(--radius-md);
-  background: rgba(249, 55, 6, 0.12);
-  color: #ff8a6a;
+  background: color-mix(in srgb, var(--color-alert) 12%, transparent);
+  color: #ff9d92;
   font-size: 14px;
 }
 
@@ -110,7 +110,7 @@
   gap: 12px;
   padding: 10px 14px;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(242, 196, 126, 0.04);
   color: var(--color-text-faint);
 }
 

@@ -1,21 +1,15 @@
 .logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  height: 32px;
-  color: #fff;
+  display: block;
+  height: 22px;
+  width: auto;
+  aspect-ratio: 916.3 / 192;
+  overflow: visible;
 }
 
-.word {
-  font-size: 27px;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1;
+.letters {
+  fill: var(--color-text-primary);
 }
 
-.mark {
-  width: 15px;
-  height: 18px;
-  margin-top: 2px;
+.chips {
   fill: var(--color-accent);
 }

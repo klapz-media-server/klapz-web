@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1c1c1c;
+  background: linear-gradient(140deg, var(--color-wine), var(--color-wine-deep));
   color: var(--color-accent);
   font-weight: 800;
 }

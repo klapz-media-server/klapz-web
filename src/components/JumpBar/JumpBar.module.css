@@ -37,7 +37,7 @@
 }
 
 .letter:hover {
-  color: #fff;
+  color: var(--color-text-primary);
   background: var(--color-control);
 }
 

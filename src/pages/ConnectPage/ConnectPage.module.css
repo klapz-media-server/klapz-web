@@ -27,7 +27,7 @@
 }
 
 .row[data-current] {
-  box-shadow: inset 0 0 0 1px rgba(229, 160, 13, 0.55);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 55%, transparent);
 }
 
 .select {
@@ -49,12 +49,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(242, 196, 126, 0.08);
   color: var(--color-text-default);
 }
 
 .row[data-current] .icon {
-  background: rgba(229, 160, 13, 0.16);
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
   color: var(--color-accent);
 }
 
@@ -87,7 +87,7 @@
 .badge {
   padding: 1px 8px;
   border-radius: var(--radius-pill);
-  background: rgba(229, 160, 13, 0.16);
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
   color: var(--color-accent);
   font-size: 11px;
   font-weight: 700;
@@ -104,45 +104,77 @@
   color: var(--color-alert);
 }
 
+.meta {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  font-size: 13px;
+}
+
+/* Problems read as a quiet suffix of the address: "host:port · Unreachable". */
 .status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 2px;
+  flex-shrink: 0;
   color: var(--color-text-muted);
-  font-size: 12px;
+  white-space: nowrap;
 }
 
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-text-faint);
+.status::before {
+  content: '·';
+  margin: 0 6px;
+  color: var(--color-text-faint);
 }
 
-.status[data-status='online'] {
-  color: var(--color-success);
-}
-
-.status[data-status='online'] .dot {
-  background: var(--color-success);
-  box-shadow: 0 0 0 3px rgba(77, 178, 136, 0.2);
-}
-
-.status[data-status='offline'] .dot,
-.status[data-status='invalid'] .dot {
-  background: var(--color-alert);
+.status[data-status='offline'],
+.status[data-status='invalid'] {
+  color: color-mix(in srgb, var(--color-alert) 80%, var(--color-text-primary));
 }
 
 .status[data-status='blocked'] {
   color: var(--color-accent);
 }
 
-.status[data-status='blocked'] .dot {
+/* Online is the normal case: the dot says it, the word is for screen readers. */
+.status[data-status='online'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Presence dot on the server icon, ringed with the card colour so it
+   looks cut out of the icon rather than stuck on it. */
+.icon {
+  position: relative;
+}
+
+.icon[data-status]::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-text-faint);
+  box-shadow: 0 0 0 2.5px #1a0b0e;
+}
+
+.icon[data-status='online']::after {
+  background: var(--color-success);
+}
+
+.icon[data-status='offline']::after,
+.icon[data-status='invalid']::after {
+  background: var(--color-alert);
+}
+
+.icon[data-status='blocked']::after {
   background: var(--color-accent);
 }
 
-.status[data-status='checking'] .dot {
+.icon[data-status='checking']::after {
   animation: pulse 1s ease-in-out infinite alternate;
 }
 
@@ -154,7 +186,7 @@
 .add {
   margin-top: 22px;
   padding-top: 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid rgba(242, 196, 126, 0.07);
 }
 
 .subtitle {
@@ -215,7 +247,7 @@
   height: 14px;
   margin: 1px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(242, 196, 126, 0.2);
   border-top-color: var(--color-accent);
   animation: spin 0.8s linear infinite;
 }

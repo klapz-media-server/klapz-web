@@ -28,13 +28,13 @@
 .slider::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 2px;
-  background: linear-gradient(90deg, #fff var(--level), rgba(255, 255, 255, 0.25) var(--level));
+  background: linear-gradient(90deg, var(--color-text-primary) var(--level), rgba(251, 245, 236, 0.25) var(--level));
 }
 
 .slider::-moz-range-track {
   height: 4px;
   border-radius: 2px;
-  background: linear-gradient(90deg, #fff var(--level), rgba(255, 255, 255, 0.25) var(--level));
+  background: linear-gradient(90deg, var(--color-text-primary) var(--level), rgba(251, 245, 236, 0.25) var(--level));
 }
 
 .slider::-webkit-slider-thumb {
@@ -43,7 +43,7 @@
   height: 13px;
   margin-top: -4.5px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-text-primary);
   border: 0;
 }
 
@@ -51,7 +51,7 @@
   width: 13px;
   height: 13px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-text-primary);
   border: 0;
 }
 

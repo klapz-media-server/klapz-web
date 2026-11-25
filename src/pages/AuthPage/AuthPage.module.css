@@ -6,40 +6,77 @@
   justify-content: center;
   padding: 40px 16px;
   overflow: hidden;
-  background:
-    radial-gradient(60% 50% at 15% 10%, rgba(229, 160, 13, 0.16), transparent 70%),
-    radial-gradient(55% 45% at 90% 90%, rgba(90, 120, 255, 0.14), transparent 70%),
-    linear-gradient(160deg, #171717, #101010 60%, #1a1a1a);
+  isolation: isolate;
+  background: linear-gradient(160deg, #1d0d11, #0f0709 60%, #170a0d);
 }
 
+/* Velvet aurora: three soft light pools drifting on long, out-of-phase
+   loops. Only transform/opacity animate, so it stays on the compositor. */
+.page::before,
+.page::after,
 .glow {
+  content: '';
   position: absolute;
-  width: 640px;
-  height: 640px;
+  z-index: -1;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(229, 160, 13, 0.1), transparent);
-  filter: blur(20px);
-  animation: drift 16s ease-in-out infinite alternate;
   pointer-events: none;
+  will-change: transform;
+}
+
+/* bordeaux pool, bottom right */
+.page::before {
+  width: 90vmax;
+  height: 90vmax;
+  right: -35vmax;
+  bottom: -40vmax;
+  background: radial-gradient(closest-side, rgba(150, 30, 50, 0.8), rgba(150, 30, 50, 0.28) 55%, transparent);
+  animation: velvetA 26s ease-in-out infinite alternate;
+}
+
+/* sand pool, top left */
+.page::after {
+  width: 70vmax;
+  height: 70vmax;
+  left: -25vmax;
+  top: -30vmax;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--color-sand) 17%, transparent), transparent);
+  animation: velvetB 32s ease-in-out infinite alternate;
+}
+
+/* deep wine wash crossing the middle, breathing */
+.glow {
+  width: 60vmax;
+  height: 60vmax;
+  left: 50%;
+  top: 50%;
+  margin: -30vmax 0 0 -30vmax;
+  background: radial-gradient(closest-side, rgba(196, 46, 70, 0.42), transparent);
+  filter: blur(30px);
+  animation: velvetC 20s ease-in-out infinite alternate;
 }
 
 .card {
   position: relative;
+  z-index: 1;
   width: min(420px, 100%);
   padding: 36px 32px 28px;
   border-radius: 20px;
-  background: rgba(28, 28, 28, 0.82);
+  background: rgba(30, 14, 18, 0.82);
   backdrop-filter: blur(24px) saturate(140%);
   -webkit-backdrop-filter: blur(24px) saturate(140%);
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(242, 196, 126, 0.08),
     0 30px 80px rgba(0, 0, 0, 0.55);
   animation: rise 0.35s var(--ease);
 }
 
 .logo {
   display: inline-flex;
-  margin-bottom: 26px;
+  margin-bottom: 28px;
+}
+
+.logo svg {
+  height: 28px;
 }
 
 .title {
@@ -79,8 +116,8 @@
   gap: 10px;
   padding: 12px 14px;
   border-radius: var(--radius-md);
-  background: rgba(249, 55, 6, 0.12);
-  color: #ff9a7e;
+  background: color-mix(in srgb, var(--color-alert) 12%, transparent);
+  color: #ff9d92;
   font-size: 14px;
   line-height: 1.45;
 }
@@ -91,14 +128,14 @@
 }
 
 .error[data-code='INACTIVE'] {
-  background: rgba(229, 160, 13, 0.12);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
   color: var(--color-accent);
 }
 
 .switch {
   margin-top: 22px;
   padding-top: 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid rgba(242, 196, 126, 0.07);
   color: var(--color-text-muted);
   font-size: 14px;
   text-align: center;
@@ -128,7 +165,7 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 6px;
-  background: rgba(77, 178, 136, 0.15);
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
   color: var(--color-success);
 }
 
@@ -143,12 +180,43 @@
   }
 }
 
-@keyframes drift {
+@keyframes velvetA {
   from {
-    transform: translate(-30%, -20%);
+    transform: translate(0, 0) scale(1);
   }
   to {
-    transform: translate(30%, 25%);
+    transform: translate(-22vw, -14vh) scale(1.15);
+  }
+}
+
+@keyframes velvetB {
+  from {
+    transform: translate(0, 0) scale(1.1);
+  }
+  to {
+    transform: translate(26vw, 18vh) scale(0.92);
+  }
+}
+
+@keyframes velvetC {
+  0% {
+    transform: translate(-18vw, 10vh) scale(0.9);
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(16vw, -12vh) scale(1.1);
+    opacity: 0.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page::before,
+  .page::after,
+  .glow {
+    animation: none;
   }
 }
 

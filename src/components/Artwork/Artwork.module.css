@@ -3,7 +3,7 @@
   width: 100%;
   overflow: hidden;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(242, 196, 126, 0.05);
   isolation: isolate;
 }
 
@@ -36,9 +36,9 @@
 .placeholder[data-state='loading'] {
   background: linear-gradient(
     100deg,
-    rgba(255, 255, 255, 0.04) 30%,
-    rgba(255, 255, 255, 0.09) 50%,
-    rgba(255, 255, 255, 0.04) 70%
+    rgba(242, 196, 126, 0.04) 30%,
+    rgba(242, 196, 126, 0.09) 50%,
+    rgba(242, 196, 126, 0.04) 70%
   );
   background-size: 300% 100%;
   animation: shimmer 1.6s linear infinite;
@@ -58,11 +58,11 @@
 }
 
 .placeholderIcon {
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(251, 245, 236, 0.35);
 }
 
 .placeholderTitle {
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(251, 245, 236, 0.75);
   font-size: 13px;
   font-weight: 600;
   line-height: 1.25;

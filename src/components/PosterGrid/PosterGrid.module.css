@@ -18,7 +18,7 @@
 .skeletonPoster {
   aspect-ratio: 2 / 3;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(242, 196, 126, 0.06);
   animation: pulse 1.4s ease-in-out infinite;
 }
 
@@ -26,7 +26,7 @@
   height: 12px;
   width: 70%;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(242, 196, 126, 0.06);
   animation: pulse 1.4s ease-in-out infinite;
 }
 

@@ -14,7 +14,7 @@
   justify-content: center;
   gap: 2px;
   background: rgba(0, 0, 0, 0.55);
-  color: #fff;
+  color: var(--color-text-primary);
   pointer-events: none;
   animation: flash 0.7s var(--ease) forwards;
 }

@@ -1,30 +1,39 @@
 :root {
   color-scheme: dark;
 
-  /* palette (from the Plex web client tokens) */
-  --color-bg: #1a1a1a;
-  --color-bg-elevated: #232323;
-  --color-menu: #202629;
-  --color-modal: #1c1c1c;
-  --color-accent: #e5a00d;
-  --color-accent-hover: #f3b125;
-  --color-on-accent: #1c1c1c;
-  --color-text-primary: #fff;
-  --color-text-default: rgba(255, 255, 255, 0.8);
-  --color-text-muted: rgba(255, 255, 255, 0.6);
-  --color-text-faint: rgba(255, 255, 255, 0.4);
-  --color-control: rgba(255, 255, 255, 0.1);
-  --color-control-hover: rgba(255, 255, 255, 0.18);
-  --color-control-active: rgba(255, 255, 255, 0.26);
-  --color-border: rgba(255, 255, 255, 0.1);
-  --color-card: rgba(0, 0, 0, 0.3);
-  --color-focus: #8af;
-  --color-success: #4db288;
-  --color-alert: #f93706;
-  --ultrablur-tl: #171717;
-  --ultrablur-tr: #1c1c1c;
-  --ultrablur-bl: #272727;
-  --ultrablur-br: #414141;
+  /* palette — Bordeaux grenat #8C1D2E × Sable doré #F2C47E
+     (evolved from the brand Bordeaux Velours #6A1A24 and Sable #E3CBA8:
+     more saturated so they glow on the dark wine background) */
+  --color-wine: #8c1d2e;
+  --color-wine-deep: #4a0f1a;
+  --color-sand: #f2c47e;
+
+  --color-bg: #160a0d;
+  --color-bg-elevated: #261218;
+  --color-menu: #1f0e13;
+  --color-modal: #1d0d12;
+  --color-surface-glass: rgba(24, 12, 15, 0.92);
+  --color-accent: var(--color-sand);
+  --color-accent-hover: #f8d69c;
+  --color-accent-soft: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  --color-accent-line: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  --color-on-accent: #5c1220;
+  --color-text-primary: #fbf5ec;
+  --color-text-default: rgba(251, 245, 236, 0.82);
+  --color-text-muted: rgba(251, 245, 236, 0.6);
+  --color-text-faint: rgba(251, 245, 236, 0.4);
+  --color-control: rgba(242, 196, 126, 0.09);
+  --color-control-hover: rgba(242, 196, 126, 0.16);
+  --color-control-active: rgba(242, 196, 126, 0.24);
+  --color-border: rgba(242, 196, 126, 0.12);
+  --color-card: rgba(10, 4, 6, 0.35);
+  --color-focus: var(--color-sand);
+  --color-success: #8cc2a0;
+  --color-alert: #f2665a;
+  --ultrablur-tl: #1a0c0f;
+  --ultrablur-tr: #36101a;
+  --ultrablur-bl: #24100f;
+  --ultrablur-br: #681828;
 
   /* layout */
   --gutter: 64px;
@@ -71,7 +80,9 @@ body {
 }
 
 body {
-  background: var(--color-bg);
+  background:
+    radial-gradient(90% 60% at 50% -10%, rgba(150, 30, 50, 0.42), transparent 70%) fixed,
+    var(--color-bg);
   color: var(--color-text-default);
   font-family: var(--font);
   font-size: 16px;
@@ -115,18 +126,26 @@ p {
   margin: 0;
 }
 
+/* Lists with a class are UI layouts, not prose: drop the UA indent.
+   :where() keeps specificity at 0 so component margins still win. */
+:where(ul[class], ol[class]) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 :focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
 ::selection {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  background: var(--color-wine);
+  color: var(--color-sand);
 }
 
-/* thin dark scrollbars */
+/* thin sand-tinted scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  scrollbar-color: rgba(242, 196, 126, 0.22) transparent;
 }

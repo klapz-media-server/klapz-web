@@ -18,7 +18,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(140deg, #3a3f46, #23262a);
+  background: linear-gradient(140deg, var(--color-wine), var(--color-wine-deep));
   color: var(--color-accent);
   font-size: 21px;
   font-weight: 800;

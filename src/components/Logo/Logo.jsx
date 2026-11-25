@@ -1,13 +1,12 @@
+import { CHIPS, LETTERS, VIEWBOX } from './logoPaths';
 import styles from './Logo.module.css';
 
-/** Wordmark of the app: "Klapz" with a play chevron. */
+/** The Klapz logotype: ivory letters, the clapper chips in the accent colour. */
 export default function Logo() {
   return (
-    <span className={styles.logo}>
-      <span className={styles.word}>Klapz</span>
-      <svg className={styles.mark} viewBox="0 0 20 24" aria-hidden="true">
-        <path d="M2 2l15 10L2 22z" />
-      </svg>
-    </span>
+    <svg className={styles.logo} viewBox={VIEWBOX} role="img" aria-label="Klapz">
+      <path className={styles.letters} d={LETTERS} fillRule="evenodd" />
+      <path className={styles.chips} d={CHIPS} fillRule="evenodd" />
+    </svg>
   );
 }

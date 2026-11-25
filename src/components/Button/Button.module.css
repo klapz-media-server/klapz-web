@@ -27,12 +27,12 @@
 }
 
 .button[data-variant='primary'] {
-  background: #fff;
-  color: #000;
+  background: var(--color-text-primary);
+  color: var(--color-wine-deep);
 }
 
 .button[data-variant='primary']:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--color-sand);
 }
 
 .button[data-variant='accent'] {
@@ -54,12 +54,12 @@
 }
 
 .button[data-variant='danger'] {
-  background: rgba(249, 55, 6, 0.12);
-  color: #ff8a6a;
+  background: color-mix(in srgb, var(--color-alert) 12%, transparent);
+  color: #ff9d92;
 }
 
 .button[data-variant='danger']:hover:not(:disabled) {
-  background: rgba(249, 55, 6, 0.22);
+  background: color-mix(in srgb, var(--color-alert) 22%, transparent);
 }
 
 .button[data-variant='ghost'] {
@@ -67,7 +67,7 @@
 }
 
 .button[data-variant='ghost']:hover:not(:disabled) {
-  color: #fff;
+  color: var(--color-text-primary);
   background: var(--color-control);
 }
 

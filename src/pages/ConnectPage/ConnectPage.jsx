@@ -11,7 +11,10 @@ import { safeNext } from '../../utils/routes';
 import auth from '../AuthPage/AuthPage.module.css';
 import styles from './ConnectPage.module.css';
 
-/** The state of a server, as a coloured dot and a word. */
+/**
+ * The state of a server. The dot sits on the server icon; the word is shown
+ * only when something needs attention ("Online" stays for screen readers).
+ */
 export function ServerStatus({ status }) {
   const { t } = useTranslation();
   const labels = {
@@ -24,7 +27,6 @@ export function ServerStatus({ status }) {
   if (!status) return null;
   return (
     <span className={styles.status} data-status={status}>
-      <span className={styles.dot} aria-hidden="true" />
       {labels[status]}
     </span>
   );
@@ -183,7 +185,7 @@ export default function ConnectPage() {
                       onClick={() => (current ? navigate(next) : connected(server))}
                       aria-current={current || undefined}
                     >
-                      <span className={styles.icon} aria-hidden="true">
+                      <span className={styles.icon} data-status={server.status} aria-hidden="true">
                         <Icon name="server" size={20} />
                       </span>
                       <span className={styles.info}>
@@ -191,8 +193,10 @@ export default function ConnectPage() {
                           {server.name}
                           {current && <span className={styles.badge}>{t('Current')}</span>}
                         </strong>
-                        <span className={styles.url}>{server.url}</span>
-                        <ServerStatus status={server.status} />
+                        <span className={styles.meta}>
+                          <span className={styles.url}>{server.url}</span>
+                          <ServerStatus status={server.status} />
+                        </span>
                       </span>
                     </button>
                     <Button

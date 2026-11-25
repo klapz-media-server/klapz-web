@@ -117,7 +117,7 @@
 .failure {
   padding: 10px 14px;
   border-radius: var(--radius-md);
-  background: rgba(249, 55, 6, 0.12);
-  color: #ff8a6a;
+  background: color-mix(in srgb, var(--color-alert) 12%, transparent);
+  color: #ff9d92;
   font-size: 14px;
 }

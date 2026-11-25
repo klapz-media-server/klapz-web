@@ -9,7 +9,7 @@
   display: inline-flex;
   align-items: center;
   border-radius: var(--radius-pill);
-  background: #fff;
-  color: #000;
+  background: var(--color-text-primary);
+  color: var(--color-wine-deep);
   font-weight: 600;
 }

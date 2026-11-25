@@ -29,11 +29,11 @@
   height: 40px;
   padding: 0 20px;
   border-radius: var(--radius-pill);
-  background: #fff;
-  color: #000;
+  background: var(--color-text-primary);
+  color: var(--color-wine-deep);
   font-weight: 600;
 }
 
 .retry:hover {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(251, 245, 236, 0.85);
 }

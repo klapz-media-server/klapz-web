@@ -11,7 +11,7 @@
   gap: 6px;
   padding: 2px 9px;
   border-radius: var(--radius-pill);
-  background: rgba(229, 160, 13, 0.14);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
   color: var(--color-accent);
   font-size: 12px;
   font-weight: 700;
@@ -26,7 +26,7 @@
 }
 
 .failure {
-  color: #ff8a6a;
+  color: #ff9d92;
   font-size: 12px;
 }
 
