@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { canDecodeAudio } from '../utils/capabilities';
-import { channelsLabel, formatBitrate, languageLabel, streamLanguage } from '../utils/format';
+import { channelsLabel, formatBitrate, languageLabel } from '../utils/format';
 
 /** Video bitrate caps offered below the source's, in bits per second. */
 const BITRATE_CAPS = [20e6, 12e6, 8e6, 4e6, 2e6, 1e6, 5e5];
@@ -57,11 +57,10 @@ export function useServerTrackOptions({ file, version, request, onChange, canDir
       .filter((s) => s.kind === 'SUBTITLE')
       .map((s) => ({
         key: s.id,
-        label: languageLabel(streamLanguage(s)),
+        label: languageLabel(s.language),
         detail: [
           trackTitle(s),
           s.isForced ? t('Forced') : null,
-          s.subtitle?.teletextPage?.isHearingImpaired ? t('Hearing impaired') : null,
           s.codec?.toUpperCase(),
         ]
           .filter(Boolean)

@@ -118,14 +118,6 @@ export function languageLabel(code) {
   }
 }
 
-/**
- * A track's language: its own, else, for a broadcast's teletext, which states one per page, the
- * language of the page its subtitles are decoded from.
- */
-export function streamLanguage(stream) {
-  return stream.language ?? stream.subtitle?.teletextPage?.language ?? null;
-}
-
 export function seasonCount(count) {
   return i18n.t('{{count}} season', { count });
 }

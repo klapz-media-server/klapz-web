@@ -5,7 +5,7 @@ import { REPORT_PLAYBACK, REPORT_VIEWING } from '../../graphql/mutations';
 import { defaultAudioId, defaultSubtitleId, useServerTrackOptions } from '../../hooks/useServerTrackOptions';
 import { useStreamSession } from '../../hooks/useStreamSession';
 import { directPlayMime } from '../../utils/capabilities';
-import { languageLabel, streamLanguage } from '../../utils/format';
+import { languageLabel } from '../../utils/format';
 import { sendBeacon } from '../../utils/gqlBeacon';
 import { decisionFromStream } from '../../utils/playback';
 import { getStreamProtocol } from '../../utils/streamProtocol';
@@ -138,7 +138,7 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
   const subtitleStream = streams.find((s) => s.id === subtitleId) ?? null;
   const textTrack = useMemo(() => {
     if (!stream || !subtitleStream) return null;
-    const language = streamLanguage(subtitleStream);
+    const language = subtitleStream.language;
     const label = subtitleStream.title || languageLabel(language);
     // The one the stream started with: a DASH manifest lists it, over HLS it is loaded apart.
     if (subtitleStream.id === startedSubtitleId && stream.subtitlesUrl) {
