@@ -414,6 +414,12 @@ export const PLAYER_ITEM = gql`
         isDefault
         isForced
         isExternal
+        subtitle {
+          teletextPage {
+            language
+            isHearingImpaired
+          }
+        }
       }
     }
   }

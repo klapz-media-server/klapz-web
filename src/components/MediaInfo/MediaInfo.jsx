@@ -5,6 +5,7 @@ import {
   formatDuration,
   languageLabel,
   resolutionLabel,
+  streamLanguage,
 } from '../../utils/format';
 import { useTranslation } from 'react-i18next';
 import styles from './MediaInfo.module.css';
@@ -61,7 +62,7 @@ export default function MediaInfo({ versions, title }) {
             [
               t('Subtitles'),
               subtitles.length
-                ? unique(subtitles.map((s) => languageLabel(s.language) + (s.isForced ? ` ${t('(forced)')}` : ''))).join(', ')
+                ? unique(subtitles.map((s) => languageLabel(streamLanguage(s)) + (s.isForced ? ` ${t('(forced)')}` : ''))).join(', ')
                 : t('None'),
             ],
             [t('Duration'), formatDuration(version.durationMs)],

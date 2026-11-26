@@ -163,6 +163,12 @@ export const VERSION_FIELDS = gql`
         channels
         isDefault
         isForced
+        subtitle {
+          teletextPage {
+            language
+            isHearingImpaired
+          }
+        }
         video {
           color {
             transfer
