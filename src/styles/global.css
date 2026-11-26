@@ -79,6 +79,12 @@ body {
   padding: 0;
 }
 
+/* reserve the scrollbar's space up front so the layout doesn't shift
+   when content finishes loading and the page becomes scrollable */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background:
     radial-gradient(90% 60% at 50% -10%, rgba(150, 30, 50, 0.42), transparent 70%) fixed,
