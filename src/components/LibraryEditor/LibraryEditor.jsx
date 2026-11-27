@@ -44,6 +44,62 @@ function useErrorText() {
     })[code] ?? t('The server refused the changes.');
 }
 
+/**
+ * One folder of the list, as a single field: browsing the server (`onBrowse`, for an owner) on
+ * its left, the path in the middle, and removing it (`onRemove`, null for the last one) on its right.
+ */
+function RootRow({ number, path, error, onChange, onBrowse, onRemove }) {
+  const { t } = useTranslation();
+  const errorId = useId();
+  return (
+    <div className={styles.rootRow}>
+      <div className={styles.rootBox} data-invalid={error ? true : undefined}>
+        {onBrowse ? (
+          <button
+            type="button"
+            className={styles.rootBrowse}
+            aria-label={t('Browse the folders of the server')}
+            title={t('Browse the folders of the server')}
+            onClick={onBrowse}
+          >
+            <Icon name="folder" size={16} />
+          </button>
+        ) : (
+          <span className={styles.rootIcon}>
+            <Icon name="folder" size={16} />
+          </span>
+        )}
+        <input
+          className={styles.rootInput}
+          aria-label={t('Folder {{number}}', { number })}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          placeholder={t('/media/movies or D:\\Movies')}
+          autoCapitalize="none"
+          spellCheck={false}
+          value={path}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <button
+          type="button"
+          className={styles.rootRemove}
+          aria-label={t('Remove this folder')}
+          title={t('Remove this folder')}
+          disabled={!onRemove}
+          onClick={onRemove ?? undefined}
+        >
+          <Icon name="close" size={15} />
+        </button>
+      </div>
+      {error && (
+        <p id={errorId} className={styles.error}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /** The folders a library scans, typed or, for an owner, picked on the server (`canBrowse`). */
 function RootList({ roots, errors, onChange, readOnly, canBrowse }) {
   const { t } = useTranslation();
@@ -65,31 +121,15 @@ function RootList({ roots, errors, onChange, readOnly, canBrowse }) {
     <div className={styles.roots}>
       {roots.map((path, index) => (
         // Rows are edited in place and never reordered, so their position is their identity.
-        <div key={index} className={styles.rootRow}>
-          <TextField
-            className={styles.rootField}
-            aria-label={t('Folder {{number}}', { number: index + 1 })}
-            placeholder={t('/media/movies or D:\\Movies')}
-            autoCapitalize="none"
-            spellCheck={false}
-            value={path}
-            onChange={(e) => set(index, e.target.value)}
-            error={errors[index]}
-          />
-          {canBrowse && (
-            <Button icon="folder" title={t('Browse the folders of the server')} onClick={() => setBrowsing(index)}>
-              {t('Browse…')}
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            icon="close"
-            aria-label={t('Remove this folder')}
-            title={t('Remove this folder')}
-            disabled={roots.length === 1}
-            onClick={() => onChange(roots.filter((_, i) => i !== index))}
-          />
-        </div>
+        <RootRow
+          key={index}
+          number={index + 1}
+          path={path}
+          error={errors[index]}
+          onChange={(value) => set(index, value)}
+          onBrowse={canBrowse ? () => setBrowsing(index) : null}
+          onRemove={roots.length > 1 ? () => onChange(roots.filter((_, i) => i !== index)) : null}
+        />
       ))}
       <Button size="sm" icon="plus" onClick={() => onChange([...roots, ''])} disabled={roots.length >= MAX_ROOTS}>
         {t('Add a folder')}

@@ -44,21 +44,107 @@
 .rootRow {
   width: 100%;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   gap: 6px;
 }
 
-.rootField {
-  flex: 1;
+/* A folder as one field: browse button, path and remove button share the same box. */
+.rootBox {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+  border: 1px solid rgba(247, 187, 89, 0.12);
+  border-radius: var(--radius-md);
+  background: rgba(247, 187, 89, 0.06);
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
 }
 
-.rootField input {
+.rootBox:focus-within {
+  border-color: rgba(251, 245, 236, 0.4);
+  background: rgba(247, 187, 89, 0.09);
+}
+
+.rootBox[data-invalid] {
+  border-color: color-mix(in srgb, var(--color-alert) 70%, transparent);
+}
+
+.rootIcon,
+.rootBrowse,
+.rootRemove {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: calc(var(--radius-md) - 3px);
+  background: none;
+  color: var(--color-text-faint);
+}
+
+.rootBrowse {
+  color: var(--color-accent);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.rootBrowse:hover {
+  background: var(--color-control);
+}
+
+.rootRemove {
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background-color 0.15s;
+}
+
+.rootRemove:hover:not(:disabled) {
+  color: #ff9d92;
+  background: color-mix(in srgb, var(--color-alert) 14%, transparent);
+}
+
+.rootRemove:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.rootBrowse:focus-visible,
+.rootRemove:focus-visible {
+  outline: 2px solid rgba(251, 245, 236, 0.5);
+  outline-offset: -2px;
+}
+
+.rootInput {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 6px;
+  border: none;
+  background: none;
+  color: var(--color-text-primary);
   font-family: ui-monospace, Consolas, monospace;
   font-size: 13px;
+  outline: none;
 }
 
-.rootRow button {
-  height: 42px;
+/* The focus ring goes around the whole box, not the input inside it. */
+.rootInput:focus-visible {
+  outline: none;
+}
+
+.rootBox:has(.rootInput:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.rootInput::placeholder {
+  color: var(--color-text-faint);
 }
 
 .readOnlyRoots {
