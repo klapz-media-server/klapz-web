@@ -46,6 +46,7 @@ const router = createBrowserRouter([
           { path: 'settings/:section', element: <SettingsPage /> },
           { path: 'servers', element: <ServerPage /> },
           { path: 'servers/:section', element: <ServerPage /> },
+          { path: 'servers/:section/:sub', element: <ServerPage /> },
           // The former address of the server's administration.
           { path: 'admin', element: <Navigate to="/servers" replace /> },
           { path: '*', element: <NotFoundPage /> },

@@ -65,6 +65,8 @@ export const client = new ApolloClient({
   cache: new InMemoryCache({
     possibleTypes,
     typePolicies: {
+      // A setting has no id: it is the server's, named by its key.
+      ServerSetting: { keyFields: ['key'] },
       Query: {
         fields: {
           search: relayStylePagination(['query', 'kinds']),
