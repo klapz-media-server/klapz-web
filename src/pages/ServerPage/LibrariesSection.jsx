@@ -6,10 +6,11 @@ import Icon from '../../components/Icon/Icon';
 import LibraryDeleteDialog from '../../components/LibraryDeleteDialog/LibraryDeleteDialog';
 import LibraryEditor from '../../components/LibraryEditor/LibraryEditor';
 import ScanButton from '../../components/ScanButton/ScanButton';
+import LibrarySettingsDialog from './LibrarySettingsDialog';
 import styles from './ServerPage.module.css';
 
 /** One library in the owners' list: what it holds, where it is scanned from, and its actions. */
-function LibraryRow({ library, onEdit, onDelete }) {
+function LibraryRow({ library, onEdit, onSettings, onDelete }) {
   const { t } = useTranslation();
   return (
     <div className={styles.library}>
@@ -27,6 +28,9 @@ function LibraryRow({ library, onEdit, onDelete }) {
           {(library.kind === 'MOVIE' || library.kind === 'SHOW') && <ScanButton libraryId={library.id} />}
           <Button size="sm" icon="edit" onClick={() => onEdit(library)}>
             {t('Edit')}
+          </Button>
+          <Button size="sm" icon="settings" onClick={() => onSettings(library)}>
+            {t('Analysis')}
           </Button>
           <Button size="sm" variant="danger" icon="trash" aria-label={t('Delete {{title}}', { title: library.title })} onClick={() => onDelete(library)} />
         </div>
@@ -47,12 +51,16 @@ function LibraryRow({ library, onEdit, onDelete }) {
   );
 }
 
-/** /servers/libraries — the server's libraries: adding, editing, scanning and deleting them. */
+/**
+ * /servers/libraries — the server's libraries: adding, editing, scanning and deleting them,
+ * and the analysis each one gives its files.
+ */
 export default function LibrariesSection({ libraries }) {
   const { t } = useTranslation();
   // `null` for a new library, a library to edit, or `undefined` while the editor is closed.
   const [editedLibrary, setEditedLibrary] = useState(undefined);
   const [libraryToDelete, setLibraryToDelete] = useState(null);
+  const [librarySettings, setLibrarySettings] = useState(null);
   const [notice, setNotice] = useState(null);
 
   return (
@@ -83,7 +91,13 @@ export default function LibrariesSection({ libraries }) {
       ) : (
         <div className={styles.list}>
           {libraries.map((library) => (
-            <LibraryRow key={library.id} library={library} onEdit={setEditedLibrary} onDelete={setLibraryToDelete} />
+            <LibraryRow
+              key={library.id}
+              library={library}
+              onEdit={setEditedLibrary}
+              onSettings={setLibrarySettings}
+              onDelete={setLibraryToDelete}
+            />
           ))}
         </div>
       )}
@@ -96,6 +110,8 @@ export default function LibrariesSection({ libraries }) {
           setNotice(scanned ? t('{{title}} saved. Its folders are being scanned.', { title: saved.title }) : t('{{title}} saved.', { title: saved.title }))
         }
       />
+
+      <LibrarySettingsDialog library={librarySettings} onClose={() => setLibrarySettings(null)} />
 
       <LibraryDeleteDialog
         library={libraryToDelete}
