@@ -1,5 +1,6 @@
 import { gql } from '@apollo/client';
 import { EDITABLE_EPISODE, EDITABLE_MOVIE, EDITABLE_SHOW } from './fragments.js';
+import { SERVER_SETTING_FIELDS } from './queries.js';
 
 export const MARK_WATCHED = gql`
   mutation MarkWatched($id: ID!) {
@@ -157,7 +158,6 @@ export const REMOVE_LIBRARY_PERMISSION = gql`
 export const CONNECT_PLEX = gql`
   mutation ConnectPlex($userId: ID!) {
     connectExtension(userId: $userId, extension: PLEX) {
-      token
       userExtension {
         externalId
         enabled
@@ -421,6 +421,21 @@ export const SIGN_IN_WITH_TICKET = gql`
       userErrors {
         field
         code
+      }
+    }
+  }
+`;
+
+export const UPDATE_SERVER_SETTINGS = gql`
+  mutation UpdateServerSettings($input: UpdateServerSettingsInput!) {
+    updateServerSettings(input: $input) {
+      settings {
+        ${SERVER_SETTING_FIELDS}
+      }
+      userErrors {
+        field
+        code
+        message
       }
     }
   }

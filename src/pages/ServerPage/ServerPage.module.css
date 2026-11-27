@@ -48,23 +48,6 @@
   font-size: 14px;
 }
 
-.credentials {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.copyRow {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.copyRow button {
-  height: 42px;
-}
-
 @media (max-width: 640px) {
   .add {
     flex-direction: column;
@@ -205,4 +188,50 @@
 
 .waiting {
   color: var(--color-accent);
+}
+
+.settingsIntro {
+  margin-bottom: 16px;
+  max-width: 680px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.settingChoice {
+  background: var(--color-control);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 14px;
+}
+
+.settingDefault {
+  margin-left: 8px;
+  color: var(--color-text-faint);
+  font-size: 12px;
+}
+
+.settingFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  color: var(--color-text-faint);
+  font-size: 13px;
+}
+
+.settingKey {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+}
+
+.settingFoot button {
+  margin-left: auto;
+}
+
+.settingFoot + .message {
+  margin: 12px 0 0;
+}
+
+.settingAddress {
+  width: min(340px, 100%);
 }

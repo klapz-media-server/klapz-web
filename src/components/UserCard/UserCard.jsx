@@ -33,7 +33,7 @@ export function plexOf(user) {
  * each library (none / viewer / admin), Plex access, deletion. The built-in `admin` stays
  * an active owner: what would change that is offered disabled.
  */
-export default function UserCard({ user, self = false, libraries, onDelete, onToken, onError, defaultOpen = false }) {
+export default function UserCard({ user, self = false, libraries, onDelete, onError, defaultOpen = false }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(defaultOpen);
   // A user just added opens once its id is known, which is after its card first renders.
@@ -101,14 +101,7 @@ export default function UserCard({ user, self = false, libraries, onDelete, onTo
     }
   };
 
-  const issueToken = async () => {
-    try {
-      const { data } = await connectPlex({ variables: { userId: user.id } });
-      onToken?.(user, data.connectExtension);
-    } catch (e) {
-      onError?.(e);
-    }
-  };
+  const enablePlex = () => connectPlex({ variables: { userId: user.id } }).catch(onError);
 
   const groups = [
     { kind: 'MOVIE', label: t('Movies') },
@@ -229,7 +222,7 @@ export default function UserCard({ user, self = false, libraries, onDelete, onTo
                 ? t('The account the server creates for itself: it stays an active owner, and cannot be deleted.')
                 : user.active
                   ? t('Active: the user can sign in and use what it was given.')
-                  : t('Inactive: nothing the user presents opens anything — its password, its sessions and its Plex token.')}{' '}
+                  : t('Inactive: nothing the user presents opens anything — its password, its sessions or its Plex apps.')}{' '}
               {user.hasPassword ? t('Signs in with a password.') : t('No password: created by an owner.')}
             </p>
             <div className={styles.row}>
@@ -332,21 +325,16 @@ export default function UserCard({ user, self = false, libraries, onDelete, onTo
             </p>
             <div className={styles.row}>
               {plexEnabled ? (
-                <>
-                  <Button size="sm" icon="share" onClick={issueToken} loading={connecting.loading}>
-                    {t('New token')}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    loading={disabling.loading}
-                    onClick={() => disablePlex({ variables: { userId: user.id } }).catch(onError)}
-                  >
-                    {t('Disable Plex')}
-                  </Button>
-                </>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  loading={disabling.loading}
+                  onClick={() => disablePlex({ variables: { userId: user.id } }).catch(onError)}
+                >
+                  {t('Disable Plex')}
+                </Button>
               ) : (
-                <Button size="sm" variant="accent" onClick={issueToken} loading={connecting.loading}>
+                <Button size="sm" variant="accent" onClick={enablePlex} loading={connecting.loading}>
                   {t('Enable Plex')}
                 </Button>
               )}

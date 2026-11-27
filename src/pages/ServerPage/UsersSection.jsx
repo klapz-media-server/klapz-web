@@ -31,8 +31,6 @@ export default function UsersSection({ users, libraries }) {
   const [message, setMessage] = useState(null);
   const [newUserId, setNewUserId] = useState(null);
   const [toDelete, setToDelete] = useState(null);
-  const [credentials, setCredentials] = useState(null);
-  const [copied, setCopied] = useState(false);
 
   // Those waiting for activation first: they are what an owner comes here for.
   const sorted = [...users].sort(
@@ -76,15 +74,6 @@ export default function UsersSection({ users, libraries }) {
       fail(err);
     } finally {
       setToDelete(null);
-    }
-  };
-
-  const copyToken = async () => {
-    try {
-      await navigator.clipboard.writeText(credentials.token);
-      setCopied(true);
-    } catch {
-      /* the field stays selectable */
     }
   };
 
@@ -163,10 +152,6 @@ export default function UsersSection({ users, libraries }) {
               defaultOpen={user.id === newUserId}
               onDelete={setToDelete}
               onError={fail}
-              onToken={(u, connected) => {
-                setCopied(false);
-                setCredentials({ username: u.username, token: connected.token, server: connected.userExtension.externalId });
-              }}
             />
           ))}
         </div>
@@ -189,33 +174,6 @@ export default function UsersSection({ users, libraries }) {
         }
       />
 
-      <Dialog
-        open={!!credentials}
-        onClose={() => setCredentials(null)}
-        title={t('Plex token for {{username}}', { username: credentials?.username })}
-        description={t('Copy it now: it is shown only once, and the server only keeps a digest of it.')}
-        actions={
-          <Button variant="primary" onClick={() => setCredentials(null)}>
-            {t('Done')}
-          </Button>
-        }
-      >
-        <div className={styles.credentials}>
-          <div className={styles.copyRow}>
-            <TextField
-              className={styles.addField}
-              label={t('Token')}
-              readOnly
-              value={credentials?.token ?? ''}
-              onFocus={(e) => e.target.select()}
-            />
-            <Button icon={copied ? 'check' : 'share'} onClick={copyToken}>
-              {copied ? t('Copied') : t('Copy')}
-            </Button>
-          </div>
-          <TextField label={t('Server identifier')} readOnly value={credentials?.server ?? ''} onFocus={(e) => e.target.select()} />
-        </div>
-      </Dialog>
     </div>
   );
 }

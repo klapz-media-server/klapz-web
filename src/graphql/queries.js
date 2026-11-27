@@ -808,3 +808,35 @@ export const SERVER_DIRECTORIES = gql`
     }
   }
 `;
+
+/** What `ServerSettingsSection` shows of a setting, so a change's answer replaces it. */
+export const SERVER_SETTING_FIELDS = `
+  key
+  description
+  kind
+  value
+  defaultValue
+  isDefault
+  choices
+  minimum
+  maximum
+  updatedAt
+  updatedBy {
+    id
+    username
+  }
+`;
+
+/** The server's settings in one namespace (`transcoder`…), for its owners. */
+export const SERVER_SETTINGS = gql`
+  query ServerSettings($namespace: String) {
+    server {
+      id
+      settings(namespace: $namespace) {
+        nodes {
+          ${SERVER_SETTING_FIELDS}
+        }
+      }
+    }
+  }
+`;
