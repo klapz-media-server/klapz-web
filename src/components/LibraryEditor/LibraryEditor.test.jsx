@@ -58,7 +58,7 @@ function newLibrary(owner, mocks = []) {
 describe('LibraryEditor', () => {
   it('lets an owner fill a folder by browsing the server', async () => {
     newLibrary(true, [listed(null, null, [['/', '/']]), listed('/', null, [['media', '/media']]), listed('/media', '/', [])]);
-    fireEvent.click(screen.getByRole('button', { name: 'Browse…' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Browse the folders of the server' }));
     fireEvent.click(await screen.findByRole('button', { name: '/' }));
     fireEvent.click(await screen.findByRole('button', { name: 'media' }));
     await screen.findByText('No folder here.');
@@ -69,7 +69,7 @@ describe('LibraryEditor', () => {
 
   it('offers no browsing to who is not an owner', () => {
     newLibrary(false);
-    expect(screen.queryByRole('button', { name: 'Browse…' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Browse the folders of the server' })).toBeNull();
     expect(screen.getByRole('textbox', { name: 'Folder 1' })).toBeTruthy();
   });
 });
