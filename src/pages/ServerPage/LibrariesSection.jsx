@@ -13,36 +13,36 @@ function LibraryRow({ library, onEdit, onDelete }) {
   const { t } = useTranslation();
   return (
     <div className={styles.library}>
-      <span className={styles.libraryIcon}>
-        <Icon name={library.kind === 'SHOW' ? 'tv' : library.kind === 'MOVIE' ? 'movie' : 'grid'} size={20} />
-      </span>
-      <div className={styles.libraryInfo}>
-        <span className={styles.libraryTitle}>
-          {library.title}
+      <div className={styles.libraryHead}>
+        <span className={styles.libraryIcon}>
+          <Icon name={library.kind === 'SHOW' ? 'tv' : library.kind === 'MOVIE' ? 'movie' : 'grid'} size={20} />
         </span>
-        <span className={styles.libraryMeta}>
-          {library.kind === 'SHOW' ? t('Shows') : library.kind === 'MOVIE' ? t('Movies') : library.kind} · {library.language}
-        </span>
-        {library.roots.length > 0 ? (
-          <ul className={styles.libraryRoots}>
-            {library.roots.map((root) => (
-              <li key={root.id}>
-                <Icon name="folder" size={13} />
-                <span>{root.path}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <span className={styles.libraryMeta}>{t('No folder')}</span>
-        )}
+        <div className={styles.libraryInfo}>
+          <span className={styles.libraryTitle}>{library.title}</span>
+          <span className={styles.libraryMeta}>
+            {library.kind === 'SHOW' ? t('Shows') : library.kind === 'MOVIE' ? t('Movies') : library.kind} · {library.language}
+          </span>
+        </div>
+        <div className={styles.libraryActions}>
+          {(library.kind === 'MOVIE' || library.kind === 'SHOW') && <ScanButton libraryId={library.id} />}
+          <Button size="sm" icon="edit" onClick={() => onEdit(library)}>
+            {t('Edit')}
+          </Button>
+          <Button size="sm" variant="danger" icon="trash" aria-label={t('Delete {{title}}', { title: library.title })} onClick={() => onDelete(library)} />
+        </div>
       </div>
-      <div className={styles.libraryActions}>
-        {(library.kind === 'MOVIE' || library.kind === 'SHOW') && <ScanButton libraryId={library.id} />}
-        <Button size="sm" icon="edit" onClick={() => onEdit(library)}>
-          {t('Edit')}
-        </Button>
-        <Button size="sm" variant="danger" icon="trash" aria-label={t('Delete {{title}}', { title: library.title })} onClick={() => onDelete(library)} />
-      </div>
+      {library.roots.length > 0 ? (
+        <ul className={styles.libraryRoots}>
+          {library.roots.map((root) => (
+            <li key={root.id} title={root.path}>
+              <Icon name="folder" size={13} />
+              <span>{root.path}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <span className={`${styles.libraryMeta} ${styles.libraryNoRoot}`}>{t('No folder')}</span>
+      )}
     </div>
   );
 }
