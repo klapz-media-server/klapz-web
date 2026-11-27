@@ -106,7 +106,7 @@
 
 .libraryInfo {
   flex: 1;
-  min-width: 0;
+  min-width: 160px;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -169,7 +169,8 @@
   justify-content: flex-end;
   align-items: center;
   gap: 6px;
-  flex-shrink: 0;
+  /* Many actions wrap onto a second line rather than squeeze the title. */
+  min-width: 0;
 }
 
 @media (max-width: 640px) {
@@ -228,10 +229,92 @@
   margin-left: auto;
 }
 
-.settingFoot + .message {
-  margin: 12px 0 0;
-}
-
 .settingAddress {
   width: min(340px, 100%);
+}
+
+.settingNumber {
+  flex-shrink: 0;
+  width: 190px;
+}
+
+.settingFailure {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-alert) 12%, transparent);
+  color: #ff9d92;
+  font-size: 14px;
+}
+
+/* A task of the analysis: whether it runs, then how many run at once, under a rule. */
+.alwaysOn {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--color-control);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.analysisNote {
+  margin-top: 10px;
+  color: var(--color-text-faint);
+  font-size: 13px;
+}
+
+.analysisLine {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settingFoot + .analysisLine,
+.settingFailure + .analysisLine,
+.analysisNote + .analysisLine {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(247, 187, 89, 0.08);
+}
+
+.analysisLineHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.analysisLineTitle {
+  color: var(--color-text-default);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.analysisLineDescription {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .analysisLineHead {
+    flex-direction: column;
+  }
+}
+
+.settingOwn {
+  color: var(--color-accent);
+}
+
+.dialogList {
+  margin-top: 18px;
+}
+
+.dialogLoading {
+  display: flex;
+  justify-content: center;
+  padding: 32px 0;
 }

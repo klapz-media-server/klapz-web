@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client';
 import { EDITABLE_EPISODE, EDITABLE_MOVIE, EDITABLE_SHOW } from './fragments.js';
-import { SERVER_SETTING_FIELDS } from './queries.js';
+import { LIBRARY_ANALYSIS_FIELDS, SERVER_SETTING_FIELDS } from './queries.js';
 
 export const MARK_WATCHED = gql`
   mutation MarkWatched($id: ID!) {
@@ -431,6 +431,25 @@ export const UPDATE_SERVER_SETTINGS = gql`
     updateServerSettings(input: $input) {
       settings {
         ${SERVER_SETTING_FIELDS}
+      }
+      userErrors {
+        field
+        code
+        message
+      }
+    }
+  }
+`;
+
+/**
+ * The library comes back whole, settings and analysis: a task turned on or off changes how
+ * many of its files are complete.
+ */
+export const UPDATE_LIBRARY_SETTINGS = gql`
+  mutation UpdateLibrarySettings($input: UpdateLibrarySettingsInput!, $namespace: String) {
+    updateLibrarySettings(input: $input) {
+      library {
+        ${LIBRARY_ANALYSIS_FIELDS}
       }
       userErrors {
         field
