@@ -18,6 +18,7 @@ import { SEASON_EPISODES, SHOW } from '../../graphql/queries';
 import { useCanEdit } from '../../hooks/useCanEdit';
 import { useCanonicalPath } from '../../hooks/useCanonicalPath';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { useThemeMusic } from '../../hooks/useThemeMusic';
 import { useWatchToggle } from '../../hooks/useWatchToggle';
 import { episodeCount, formatContentRating, seasonCount, seasonLabel } from '../../utils/format';
 import { libraryPath, readParam, seasonPath, showPath, tagPath } from '../../utils/routes';
@@ -63,6 +64,8 @@ export default function ShowPage() {
   const { data, loading, error, refetch } = useQuery(SHOW, { variables: { id } });
   const show = data?.node?.__typename === 'Show' ? data.node : null;
   usePageTitle(show?.title);
+  // The series' page and its seasons' share one theme, kept playing from one to the other.
+  useThemeMusic(id);
   const routeSeason = show?.seasons.nodes.find((s) => s.id === seasonId);
   useCanonicalPath(show ? (routeSeason ? seasonPath(show, routeSeason) : showPath(show)) : null, {
     dropQuery: ['season'],

@@ -7,6 +7,7 @@ import { useShakaPlayer } from '../../hooks/useShakaPlayer';
 import { useShakaTrackOptions } from '../../hooks/useShakaTrackOptions';
 import { artworkUrl } from '../../utils/artwork';
 import { formatClock } from '../../utils/format';
+import { stopThemeMusic } from '../../utils/themeMusic';
 import { withManifestDelivery } from '../../utils/playback';
 import Icon from '../Icon/Icon';
 import PlayerFeedback from '../PlayerFeedback/PlayerFeedback';
@@ -132,6 +133,9 @@ export default function VideoPlayer({
   useEffect(() => {
     if (shakaState.status === 'error') errorRef.current?.(shakaState.error);
   }, [shakaState.status, shakaState.error]);
+
+  // A series' theme gives way to the video at once.
+  useEffect(() => stopThemeMusic(), []);
 
   // Start playing as soon as the manifest is loaded (the click on "Play" is
   // the user gesture); fall back to the big play button if the browser refuses.

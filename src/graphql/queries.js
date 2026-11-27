@@ -840,3 +840,20 @@ export const SERVER_SETTINGS = gql`
     }
   }
 `;
+
+/**
+ * A series' theme music, asked apart from the series' page: a server without `Show.theme`
+ * refuses this query alone, and the page plays nothing.
+ */
+export const SHOW_THEME = gql`
+  query ShowTheme($id: ID!) {
+    node(id: $id) {
+      id
+      ... on Show {
+        theme {
+          url
+        }
+      }
+    }
+  }
+`;
