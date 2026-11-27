@@ -11,11 +11,14 @@ import TextField from '../../components/TextField/TextField';
 import { UPDATE_SERVER_SETTINGS } from '../../graphql/mutations';
 import { SERVER_SETTINGS } from '../../graphql/queries';
 import { formatDate } from '../../utils/format';
-import { invalidText, settingText } from './settingText';
+import { integerValue, invalidText, settingText } from './settingText';
 import styles from './ServerPage.module.css';
 
-/** The control a setting's kind calls for. `onChange` receives the new value as text. */
-function SettingControl({ setting, label, disabled, onChange }) {
+/**
+ * The control a setting's kind calls for. `onChange` receives the new value as text;
+ * `onRefuse` is called instead for a value the setting cannot take.
+ */
+function SettingControl({ setting, label, disabled, onChange, onRefuse }) {
   const { t } = useTranslation();
   const [draft, setDraft] = useState(setting.value);
   useEffect(() => setDraft(setting.value), [setting.value]);
@@ -54,14 +57,19 @@ function SettingControl({ setting, label, disabled, onChange }) {
     );
   }
   if (setting.kind === 'INTEGER') {
-    const commit = () => draft.trim() !== setting.value && onChange(draft);
+    // A browser's number field reads anything it cannot parse as empty, which an optional
+    // setting would take for "none": the field stays text, and the value is checked here.
+    const commit = () => {
+      const value = integerValue(setting, draft);
+      if (value === undefined) return onRefuse();
+      setDraft(value);
+      onChange(value);
+    };
     return (
       <TextField
         aria-label={label}
-        type="number"
         inputMode="numeric"
-        min={setting.minimum ?? undefined}
-        max={setting.maximum ?? undefined}
+        placeholder={setting.optional ? t('Automatic') : undefined}
         value={draft}
         disabled={disabled}
         hint={t('From {{minimum}} to {{maximum}}', { minimum: setting.minimum, maximum: setting.maximum })}
@@ -102,6 +110,7 @@ function SettingRow({ setting }) {
 
   const save = async (value) => {
     setFailure(null);
+    if (value === setting.value) return;
     try {
       const { data } = await update({ variables: { input: { settings: [{ key: setting.key, value }] } } });
       const refused = data?.updateServerSettings.userErrors[0];
@@ -115,7 +124,15 @@ function SettingRow({ setting }) {
     <SettingsSection
       title={text.title}
       description={text.description}
-      aside={<SettingControl setting={setting} label={text.title} disabled={loading} onChange={save} />}
+      aside={
+        <SettingControl
+          setting={setting}
+          label={text.title}
+          disabled={loading}
+          onChange={save}
+          onRefuse={() => setFailure(invalidText(t, setting))}
+        />
+      }
     >
       <div className={styles.settingFoot}>
         <code className={styles.settingKey}>{setting.key}</code>
