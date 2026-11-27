@@ -595,6 +595,51 @@ export const LIBRARY_SETTINGS = gql`
   }
 `;
 
+/** What `LibrarySettingsDialog` shows of a library's setting, so a change's answer replaces it. */
+export const LIBRARY_SETTING_FIELDS = `
+  key
+  description
+  kind
+  value
+  isInherited
+  serverValue
+  updatedAt
+  updatedBy {
+    id
+    username
+  }
+`;
+
+/** What `LibrarySettingsDialog` shows of a library: its settings in one namespace, and how far its files are read. */
+export const LIBRARY_ANALYSIS_FIELDS = `
+  id
+  title
+  settings(namespace: $namespace) {
+    nodes {
+      ${LIBRARY_SETTING_FIELDS}
+    }
+  }
+  analysis {
+    fileCount
+    readFileCount
+    completeFileCount
+    reading
+    failure
+  }
+`;
+
+/** The settings a library holds in one namespace (`analysis`…), for the server's owners. */
+export const LIBRARY_ANALYSIS_SETTINGS = gql`
+  query LibraryAnalysisSettings($id: ID!, $namespace: String) {
+    node(id: $id) {
+      id
+      ... on Library {
+        ${LIBRARY_ANALYSIS_FIELDS}
+      }
+    }
+  }
+`;
+
 /** Who the app is signed in as: a user, or no one (`role` and `user` null). */
 export const VIEWER = gql`
   query Viewer {
@@ -814,6 +859,7 @@ export const SERVER_SETTING_FIELDS = `
   key
   description
   kind
+  perLibrary
   value
   defaultValue
   isDefault

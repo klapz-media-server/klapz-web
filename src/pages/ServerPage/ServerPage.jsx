@@ -37,6 +37,11 @@ const SETTINGS = [
     label: (t) => t('Scanner'),
     intro: (t) => t('How the server walks and reads the folders of its libraries. Each change is saved at once and applies from the next scan.'),
   },
+  {
+    id: 'analysis',
+    label: (t) => t('Analysis'),
+    intro: (t) => t('What the server reads of each file once it is found, and how many files it reads at once. Each change is saved at once.'),
+  },
 ];
 
 /**

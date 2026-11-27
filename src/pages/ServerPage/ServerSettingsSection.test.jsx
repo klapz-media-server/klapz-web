@@ -15,6 +15,7 @@ const crf = {
   key: 'transcoder.h264.crf',
   description: 'The constant rate factor x264 aims for.',
   kind: 'INTEGER',
+  perLibrary: false,
   value: '',
   defaultValue: '',
   isDefault: true,
@@ -88,13 +89,33 @@ describe('ServerSettingsSection', () => {
     expect(field.value).toBe('28');
   });
 
+  it('goes back to automatic when emptied', async () => {
+    const reset = {
+      request: { query: UPDATE_SERVER_SETTINGS, variables: { input: { settings: [{ key: crf.key, value: null }] } } },
+      result: {
+        data: { updateServerSettings: { __typename: 'UpdateServerSettingsPayload', settings: [crf], userErrors: [] } },
+      },
+    };
+    const field = await crfField([saved('28'), reset]);
+    fireEvent.change(field, { target: { value: '28' } });
+    fireEvent.blur(field);
+    await screen.findByRole('button', { name: /Clear/ });
+    fireEvent.change(field, { target: { value: '' } });
+    fireEvent.blur(field);
+    await screen.findByText('Default value');
+    expect(screen.queryByRole('button', { name: /Clear/ })).toBeNull();
+  });
+
   it('refuses an out-of-range value without sending it', async () => {
     const field = await crfField([]);
     fireEvent.change(field, { target: { value: '60' } });
     fireEvent.blur(field);
-    expect((await screen.findByRole('alert')).textContent).toBe('Enter a whole number from 0 to 51, or leave it empty.');
+    // The refusal shows under the field, in place of its hint.
+    await screen.findByText('Enter a whole number from 0 to 51, or leave it empty.');
+    expect(field.getAttribute('aria-invalid')).toBe('true');
     fireEvent.change(field, { target: { value: '' } });
     fireEvent.blur(field);
-    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
+    await waitFor(() => expect(field.getAttribute('aria-invalid')).toBeNull());
+    expect(screen.getByText('From 0 to 51')).toBeTruthy();
   });
 });
