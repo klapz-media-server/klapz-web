@@ -158,7 +158,14 @@ export const VERSION_FIELDS = gql`
         id
         kind
         codec
-        language
+        language {
+          tag
+          language
+          script
+          region
+          name
+          nativeName
+        }
         title
         channels
         isDefault

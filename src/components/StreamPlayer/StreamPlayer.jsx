@@ -138,8 +138,9 @@ export default function StreamPlayer({ item, version, file, title, subtitle, pos
   const subtitleStream = streams.find((s) => s.id === subtitleId) ?? null;
   const textTrack = useMemo(() => {
     if (!stream || !subtitleStream) return null;
-    const language = subtitleStream.language;
-    const label = subtitleStream.title || languageLabel(language);
+    // The player takes a BCP 47 tag.
+    const language = subtitleStream.language?.tag ?? null;
+    const label = subtitleStream.title || languageLabel(subtitleStream.language);
     // The one the stream started with: a DASH manifest lists it, over HLS it is loaded apart.
     if (subtitleStream.id === startedSubtitleId && stream.subtitlesUrl) {
       const url = stream.protocol === 'DASH' ? null : stream.subtitlesUrl;

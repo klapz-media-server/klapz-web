@@ -108,14 +108,27 @@ export function channelsLabel(channels) {
   return layouts[channels] ?? i18n.t('{{count}} channels', { count: channels });
 }
 
-export function languageLabel(code) {
-  if (!code) return i18n.t('Unknown');
+/**
+ * A language's name in the interface's language: from a server `Locale` (`{ tag, name }`) or
+ * a BCP 47 string as the player reports it. `fr-CA` reads as "French (Canada)".
+ */
+export function languageLabel(language) {
+  if (!language) return i18n.t('Unknown');
+  const tag = typeof language === 'string' ? language : language.tag;
+  let name = null;
   try {
-    const name = new Intl.DisplayNames([locale()], { type: 'language' }).of(code);
-    return name ? name.charAt(0).toUpperCase() + name.slice(1) : code;
+    name = new Intl.DisplayNames([locale()], { type: 'language', fallback: 'none' }).of(tag);
   } catch {
-    return code;
+    // Not a tag Intl reads: the server's English name, or the tag itself.
   }
+  if (name) return name.charAt(0).toUpperCase() + name.slice(1);
+  return (typeof language === 'string' ? null : language.name) ?? tag;
+}
+
+/** The primary language subtag of a `Locale` or a BCP 47 string, lower-cased: `fr` for `fr-CA`. */
+export function baseLanguage(language) {
+  const tag = typeof language === 'string' ? language : language?.tag;
+  return tag ? tag.split('-')[0].toLowerCase() : null;
 }
 
 export function seasonCount(count) {
