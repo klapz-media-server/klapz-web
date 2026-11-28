@@ -863,6 +863,7 @@ export const SERVER_SETTING_FIELDS = `
   value
   defaultValue
   isDefault
+  optional
   choices
   minimum
   maximum

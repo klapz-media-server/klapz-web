@@ -8,7 +8,7 @@ import SettingsSection from '../../components/SettingsSection/SettingsSection';
 import TextField from '../../components/TextField/TextField';
 import { UPDATE_SERVER_SETTINGS } from '../../graphql/mutations';
 import { formatDate } from '../../utils/format';
-import { invalidText, settingText } from './settingText';
+import { integerValue, invalidText, settingText } from './settingText';
 import styles from './ServerPage.module.css';
 
 /**
@@ -55,23 +55,25 @@ export function SettingControl({ setting, label, disabled, error, onChange }) {
     );
   }
   if (setting.kind === 'INTEGER') {
-    const commit = () => draft.trim() !== setting.value && onChange(draft);
+    // A browser's number field reads what it cannot parse as empty, which an optional setting
+    // would take for "automatic": the field stays text, and `useSaveSetting` checks it. Emptied,
+    // an optional setting goes back to its default, none.
+    const commit = () => onChange(draft.trim() === '' && setting.optional ? null : draft);
+    const bounds = { minimum: setting.minimum, maximum: setting.maximum, default: setting.defaultValue };
     return (
       <TextField
         aria-label={label}
         className={styles.settingNumber}
-        type="number"
         inputMode="numeric"
-        min={setting.minimum ?? undefined}
-        max={setting.maximum ?? undefined}
+        placeholder={setting.optional ? t('Automatic') : undefined}
         value={draft}
         disabled={disabled}
         error={error}
-        hint={t('From {{minimum}} to {{maximum}}, {{default}} by default', {
-          minimum: setting.minimum,
-          maximum: setting.maximum,
-          default: setting.defaultValue,
-        })}
+        hint={
+          setting.defaultValue === ''
+            ? t('From {{minimum}} to {{maximum}}', bounds)
+            : t('From {{minimum}} to {{maximum}}, {{default}} by default', bounds)
+        }
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => e.key === 'Enter' && commit()}
@@ -112,8 +114,15 @@ export function useSaveSetting(setting) {
   const [update, { loading }] = useMutation(UPDATE_SERVER_SETTINGS);
   const [failure, setFailure] = useState(null);
 
-  const save = async (value) => {
+  const save = async (asked) => {
     setFailure(null);
+    let value = asked;
+    if (setting.kind === 'INTEGER' && value !== null) {
+      // Refused here rather than by the server, and sent as the server would store it.
+      value = integerValue(setting, value);
+      if (value === undefined) return setFailure(invalidText(t, setting));
+    }
+    if (value === setting.value || (value === null && setting.isDefault)) return;
     try {
       const { data } = await update({ variables: { input: { settings: [{ key: setting.key, value }] } } });
       // One setting is sent at a time: whatever field the refusal names, it is this one's.
