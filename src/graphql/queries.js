@@ -408,7 +408,14 @@ export const PLAYER_ITEM = gql`
         id
         kind
         codec
-        language
+        language {
+          tag
+          language
+          script
+          region
+          name
+          nativeName
+        }
         title
         channels
         isDefault
@@ -565,7 +572,14 @@ export const ADMIN_USERS = gql`
         id
         title
         kind
-        language
+        language {
+          tag
+          language
+          script
+          region
+          name
+          nativeName
+        }
         scanning
         roots {
           id
@@ -584,7 +598,14 @@ export const LIBRARY_SETTINGS = gql`
       ... on Library {
         title
         kind
-        language
+        language {
+          tag
+          language
+          script
+          region
+          name
+          nativeName
+        }
         scanning
         roots {
           id
@@ -900,6 +921,18 @@ export const SHOW_THEME = gql`
         theme {
           url
         }
+      }
+    }
+  }
+`;
+
+/** Every language the server knows, as its `Language` enum lists them: a code and its English name. */
+export const LANGUAGES = gql`
+  query Languages {
+    __type(name: "Language") {
+      enumValues {
+        name
+        description
       }
     }
   }

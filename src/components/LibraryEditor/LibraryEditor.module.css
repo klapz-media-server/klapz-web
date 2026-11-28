@@ -200,3 +200,19 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* The language and its optional region, side by side in one field. */
+.locale {
+  display: flex;
+  gap: 8px;
+}
+
+.language {
+  flex: 1;
+  min-width: 0;
+}
+
+.region {
+  width: 84px;
+  text-transform: uppercase;
+}

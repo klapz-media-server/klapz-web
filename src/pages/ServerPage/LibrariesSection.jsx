@@ -6,6 +6,7 @@ import Icon from '../../components/Icon/Icon';
 import LibraryDeleteDialog from '../../components/LibraryDeleteDialog/LibraryDeleteDialog';
 import LibraryEditor from '../../components/LibraryEditor/LibraryEditor';
 import ScanButton from '../../components/ScanButton/ScanButton';
+import { languageLabel } from '../../utils/format';
 import LibrarySettingsDialog from './LibrarySettingsDialog';
 import styles from './ServerPage.module.css';
 
@@ -21,7 +22,7 @@ function LibraryRow({ library, onEdit, onSettings, onDelete }) {
         <div className={styles.libraryInfo}>
           <span className={styles.libraryTitle}>{library.title}</span>
           <span className={styles.libraryMeta}>
-            {library.kind === 'SHOW' ? t('Shows') : library.kind === 'MOVIE' ? t('Movies') : library.kind} · {library.language}
+            {library.kind === 'SHOW' ? t('Shows') : library.kind === 'MOVIE' ? t('Movies') : library.kind} · {languageLabel(library.language)}
           </span>
         </div>
         <div className={styles.libraryActions}>

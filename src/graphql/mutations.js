@@ -303,7 +303,14 @@ const LIBRARY_SETTINGS_FIELDS = `
   id
   title
   kind
-  language
+  language {
+    tag
+    language
+    script
+    region
+    name
+    nativeName
+  }
   hidden
   scanning
   roots {

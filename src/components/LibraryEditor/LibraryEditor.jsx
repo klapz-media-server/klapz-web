@@ -1,9 +1,10 @@
-import { useId, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react';
 import { useTranslation } from 'react-i18next';
 import { CREATE_LIBRARY, UPDATE_LIBRARY } from '../../graphql/mutations';
-import { LIBRARY_SETTINGS } from '../../graphql/queries';
+import { LANGUAGES, LIBRARY_SETTINGS } from '../../graphql/queries';
 import { useViewer } from '../../hooks/useViewer';
+import { locale } from '../../i18n';
 import Button from '../Button/Button';
 import Dialog from '../Dialog/Dialog';
 import FolderPicker from '../FolderPicker/FolderPicker';
@@ -11,20 +12,53 @@ import Icon from '../Icon/Icon';
 import SegmentedControl from '../SegmentedControl/SegmentedControl';
 import Spinner from '../Spinner/Spinner';
 import TextField from '../TextField/TextField';
+import fieldStyles from '../TextField/TextField.module.css';
 import styles from './LibraryEditor.module.css';
 
 /** The lists that show libraries, refetched when one is created: only those on screen run. */
 export const LIBRARY_LISTS = ['Libraries', 'AdminUsers', 'Viewer'];
 
-/** As the server checks it: a language of 2 or 3 letters, then subtags of 2 to 8. */
-const LANGUAGE_PATTERN = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
+/** A region as the server takes it: ISO 3166-1 alpha-2 (`CA`) or UN M.49 (`419`). */
+const REGION_PATTERN = /^([A-Za-z]{2}|[0-9]{3})$/;
 const MAX_ROOTS = 32;
-const LANGUAGES = ['fr-FR', 'fr-CA', 'en-US', 'en-GB', 'de-DE', 'es-ES', 'es-419', 'it-IT', 'pt-BR', 'ja-JP', 'ko-KR', 'zh-CN'];
+/** Undetermined, multiple, no linguistic content, uncoded: no language to show metadata in. */
+const NOT_A_METADATA_LANGUAGE = new Set(['UND', 'MUL', 'ZXX', 'MIS']);
 
-/** The language a new library starts with: the interface's, as a full tag when it is a known one. */
-function defaultLanguage(interfaceLanguage) {
+/** The language a new library starts with: the interface's, with the region its metadata usually wants. */
+function defaultLocale(interfaceLanguage) {
   const base = (interfaceLanguage ?? 'en').split('-')[0];
-  return LANGUAGES.find((tag) => tag.startsWith(`${base}-`)) ?? 'en-US';
+  return base === 'fr' ? { language: 'FR', region: 'FR' } : { language: 'EN', region: 'US' };
+}
+
+/** A `Language` value named in the interface's language, else by the server's English name. */
+function languageName(names, code, english) {
+  let name = null;
+  try {
+    name = names.of(code.toLowerCase());
+  } catch {
+    // A code Intl does not read.
+  }
+  return name ? name.charAt(0).toUpperCase() + name.slice(1) : (english ?? code);
+}
+
+/**
+ * The server's languages as picker options, sorted by name. `current` (`{ language, name }`)
+ * stays offered even when it is not one a library would be given, or before the list loads.
+ */
+function useLanguageOptions(current) {
+  const { data } = useQuery(LANGUAGES);
+  const interfaceLocale = locale();
+  return useMemo(() => {
+    const names = new Intl.DisplayNames([interfaceLocale], { type: 'language', fallback: 'none' });
+    const options = (data?.__type?.enumValues ?? [])
+      .filter((value) => !NOT_A_METADATA_LANGUAGE.has(value.name) || value.name === current.language)
+      .map((value) => ({ value: value.name, label: languageName(names, value.name, value.description) }));
+    if (!options.some((option) => option.value === current.language)) {
+      options.push({ value: current.language, label: languageName(names, current.language, current.name) });
+    }
+    const collator = new Intl.Collator(interfaceLocale);
+    return options.sort((a, b) => collator.compare(a.label, b.label));
+  }, [data, interfaceLocale, current.language, current.name]);
 }
 
 function useErrorText() {
@@ -33,7 +67,8 @@ function useErrorText() {
     ({
       LIBRARY_NOT_FOUND: t('This library no longer exists, or you may not change it.'),
       INVALID_TITLE: t('A title of 1 to 255 characters.'),
-      INVALID_LANGUAGE: t('A language tag, such as fr-FR.'),
+      // The server's refusal of a script or a region; the editor only lets a region be typed.
+      INVALID_LANGUAGE: t('A region of two letters, such as CA, or three digits, such as 419.'),
       UNSUPPORTED_KIND: t('This server holds movies and shows only.'),
       NO_ROOT: t('Add at least one folder.'),
       TOO_MANY_ROOTS: t('A library scans at most 32 folders.'),
@@ -152,7 +187,14 @@ function EditorForm({ library, formId, onBusy, onDone }) {
   const initial = {
     title: library?.title ?? '',
     kind: library?.kind ?? 'MOVIE',
-    language: library?.language ?? defaultLanguage(i18n.language),
+    locale: library
+      ? {
+          language: library.language.language,
+          script: library.language.script ?? null,
+          region: library.language.region ?? '',
+          name: library.language.name,
+        }
+      : { ...defaultLocale(i18n.language), script: null, name: null },
     roots: library ? library.roots.map((root) => root.path) : [''],
   };
   const [values, setValues] = useState(initial);
@@ -160,11 +202,17 @@ function EditorForm({ library, formId, onBusy, onDone }) {
   const [failure, setFailure] = useState(null);
   const [create] = useMutation(CREATE_LIBRARY, { refetchQueries: LIBRARY_LISTS });
   const [update] = useMutation(UPDATE_LIBRARY);
-  const languagesId = useId();
+  const languageId = useId();
+  const languageHintId = useId();
+  const languageOptions = useLanguageOptions(initial.locale);
 
   const set = (field) => (value) => {
     setValues((v) => ({ ...v, [field]: value }));
     setErrors((e) => (field === 'roots' ? { ...e, roots: {} } : { ...e, [field]: null }));
+  };
+  const setLocale = (change) => {
+    setValues((v) => ({ ...v, locale: { ...v.locale, ...change } }));
+    setErrors((e) => ({ ...e, language: null }));
   };
   const roots = values.roots.map((path) => path.trim()).filter(Boolean);
   const rootsChanged = roots.join('\n') !== initial.roots.join('\n');
@@ -187,10 +235,14 @@ function EditorForm({ library, formId, onBusy, onDone }) {
     e.preventDefault();
     setFailure(null);
     const title = values.title.trim();
-    const language = values.language.trim();
+    const region = values.locale.region.trim().toUpperCase();
+    // The editor offers no script: the one a library has stays with its language.
+    const script = values.locale.language === initial.locale.language ? initial.locale.script : null;
+    const language = { language: values.locale.language, ...(script && { script }), ...(region && { region }) };
+    const languageChanged = language.language !== initial.locale.language || region !== initial.locale.region;
     const found = { roots: {} };
     if (!title) found.title = errorText('INVALID_TITLE');
-    if (!LANGUAGE_PATTERN.test(language)) found.language = errorText('INVALID_LANGUAGE');
+    if (region && !REGION_PATTERN.test(region)) found.language = errorText('INVALID_LANGUAGE');
     if ((creating || owner) && roots.length === 0) found.rootsList = errorText('NO_ROOT');
     if (found.title || found.language || found.rootsList) {
       setErrors(found);
@@ -202,7 +254,7 @@ function EditorForm({ library, formId, onBusy, onDone }) {
     } else {
       input = { id: library.id };
       if (title !== initial.title) input.title = title;
-      if (language !== initial.language) input.language = language;
+      if (languageChanged) input.language = language;
       if (owner && rootsChanged) input.roots = roots;
       if (Object.keys(input).length === 1) {
         onDone(null);
@@ -260,22 +312,42 @@ function EditorForm({ library, formId, onBusy, onDone }) {
             </span>
           )}
         </div>
-        <TextField
-          className={styles.field}
-          label={t('Metadata language')}
-          list={languagesId}
-          autoCapitalize="none"
-          spellCheck={false}
-          value={values.language}
-          onChange={(e) => set('language')(e.target.value)}
-          error={errors.language}
-          hint={errors.language ? null : t('A language tag, such as fr-FR.')}
-        />
-        <datalist id={languagesId}>
-          {LANGUAGES.map((tag) => (
-            <option key={tag} value={tag} />
-          ))}
-        </datalist>
+        <div className={styles.field}>
+          <label htmlFor={languageId} className={styles.label}>
+            {t('Metadata language')}
+          </label>
+          <div className={styles.locale}>
+            <select
+              id={languageId}
+              className={`${fieldStyles.input} ${styles.language}`}
+              aria-invalid={errors.language ? true : undefined}
+              aria-describedby={languageHintId}
+              value={values.locale.language}
+              onChange={(e) => setLocale({ language: e.target.value })}
+            >
+              {languageOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <input
+              className={`${fieldStyles.input} ${styles.region}`}
+              aria-label={t('Region')}
+              aria-invalid={errors.language ? true : undefined}
+              aria-describedby={languageHintId}
+              placeholder={t('Region')}
+              maxLength={3}
+              autoCapitalize="characters"
+              spellCheck={false}
+              value={values.locale.region}
+              onChange={(e) => setLocale({ region: e.target.value })}
+            />
+          </div>
+          <p id={languageHintId} className={fieldStyles.hint} data-error={errors.language ? true : undefined}>
+            {errors.language || t('The region is optional: CA for French from Canada, 419 for Latin American Spanish.')}
+          </p>
+        </div>
       </div>
       <div className={styles.field}>
         <span className={styles.label}>{t('Folders')}</span>

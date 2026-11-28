@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { canDecodeAudio } from '../utils/capabilities';
-import { channelsLabel, formatBitrate, languageLabel } from '../utils/format';
+import { baseLanguage, channelsLabel, formatBitrate, languageLabel } from '../utils/format';
 
 /** Video bitrate caps offered below the source's, in bits per second. */
 const BITRATE_CAPS = [20e6, 12e6, 8e6, 4e6, 2e6, 1e6, 5e5];
@@ -10,19 +10,25 @@ export function defaultAudioId(streams) {
   return (audio.find((s) => s.isDefault) ?? audio[0])?.id ?? null;
 }
 
-/** Forced subtitles in the audio's language are on by default, like Plex. */
+/** Forced subtitles in the audio's language are on by default, like Plex: `fr-CA` audio takes `fr` ones. */
 export function defaultSubtitleId(streams, audioId) {
   const audio = streams.find((s) => s.id === audioId);
   const forced = streams.find(
     (s) =>
       s.kind === 'SUBTITLE' &&
       (s.isForced || /forced|forcé/i.test(s.title ?? '')) &&
-      (!audio?.language || s.language === audio.language),
+      (!audio?.language || baseLanguage(s.language) === baseLanguage(audio.language)),
   );
   return forced?.id ?? null;
 }
 
-const trackTitle = (s) => (s.title && s.title.toLowerCase() !== (s.language ?? '').toLowerCase() ? s.title : null);
+/** A track's title, unless it only repeats its language (`fr`, `French`). */
+const trackTitle = (s) => {
+  if (!s.title) return null;
+  const title = s.title.toLowerCase();
+  const repeats = [s.language?.tag, s.language?.name, s.language?.nativeName].some((name) => name?.toLowerCase() === title);
+  return repeats ? null : s.title;
+};
 
 /**
  * Settings options for a file's own tracks. Choosing one calls `onChange`

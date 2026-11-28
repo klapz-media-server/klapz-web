@@ -1,6 +1,16 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import i18n from '../i18n';
-import { channelsLabel, episodeCode, formatBitrate, formatClock, formatDuration, progressRatio, resolutionLabel } from './format';
+import {
+  baseLanguage,
+  channelsLabel,
+  episodeCode,
+  formatBitrate,
+  formatClock,
+  formatDuration,
+  languageLabel,
+  progressRatio,
+  resolutionLabel,
+} from './format';
 
 beforeAll(() => i18n.changeLanguage('en'));
 
@@ -43,5 +53,22 @@ describe('format', () => {
     expect(progressRatio({ offsetMs: 30 }, 60)).toBe(0.5);
     expect(progressRatio({ offsetMs: 90 }, 60)).toBe(1);
     expect(progressRatio(null, 60)).toBe(0);
+  });
+
+  it('names a server locale or a player tag in the interface language', () => {
+    expect(languageLabel({ tag: 'fr-CA', language: 'FR', region: 'CA', name: 'French' })).toBe('Canadian French');
+    expect(languageLabel({ tag: 'de', language: 'DE', name: 'German' })).toBe('German');
+    expect(languageLabel('es-419')).toBe('Latin American Spanish');
+    expect(languageLabel(null)).toBe('Unknown');
+  });
+
+  it('falls back to the server name of a tag Intl does not read', () => {
+    expect(languageLabel({ tag: 'x-klingon', language: 'MIS', name: 'Uncoded languages' })).toBe('Uncoded languages');
+  });
+
+  it('takes the primary language of a locale or a tag', () => {
+    expect(baseLanguage({ tag: 'fr-CA' })).toBe('fr');
+    expect(baseLanguage('FR-fr')).toBe('fr');
+    expect(baseLanguage(null)).toBeNull();
   });
 });
