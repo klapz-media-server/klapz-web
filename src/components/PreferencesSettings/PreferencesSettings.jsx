@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useThemeMusicPreference } from '../../hooks/useThemeMusic';
 import { LANGUAGES } from '../../i18n';
 import { getStreamProtocol, setStreamProtocol } from '../../utils/streamProtocol';
 import SegmentedControl from '../SegmentedControl/SegmentedControl';
 import SettingsSection from '../SettingsSection/SettingsSection';
 
-/** Settings of this browser: the interface language, the streaming protocol. */
+/** Settings of this browser: the interface language, theme music, the streaming protocol. */
 export default function PreferencesSettings() {
   const { t, i18n } = useTranslation();
   const [protocol, setProtocol] = useState(getStreamProtocol);
+  const [themeMusic, setThemeMusic] = useThemeMusicPreference();
 
   return (
     <>
@@ -21,6 +23,21 @@ export default function PreferencesSettings() {
             options={LANGUAGES.map((lng) => ({ value: lng.code, label: lng.label, tone: 'accent' }))}
             value={i18n.resolvedLanguage ?? 'en'}
             onChange={(code) => i18n.changeLanguage(code)}
+          />
+        }
+      />
+      <SettingsSection
+        title={t('Theme music')}
+        description={t("A series' theme song, played softly behind its pages, kept in this browser.")}
+        aside={
+          <SegmentedControl
+            label={t('Theme music')}
+            options={[
+              { value: false, label: t('Off') },
+              { value: true, label: t('On'), tone: 'accent' },
+            ]}
+            value={themeMusic}
+            onChange={setThemeMusic}
           />
         }
       />
